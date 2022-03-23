@@ -1,8 +1,9 @@
-use log::{debug, warn, info};
+use super::config;
+use log::{debug, info, warn};
 use requestty::Question;
-use serde::{Serialize, Deserialize};
-use toml;
+use serde::{Deserialize, Serialize};
 use std::fs;
+use toml;
 
 pub fn command() -> Result<(), &'static str> {
     debug!("Running Store API key");
@@ -17,13 +18,12 @@ pub fn command() -> Result<(), &'static str> {
 }
 
 fn replace_api_key(new_api_key: ApiKey) {
-
-    let old_config = load_config_from_file().unwrap();
+    let old_config = config::from_file().unwrap();
 
     match old_config.keys.live {
         Some(_) => {
             info!("Replacing previously stored key");
-        },
+        }
         None => {
             info!("Storing new key");
         }
@@ -34,54 +34,12 @@ fn replace_api_key(new_api_key: ApiKey) {
 
     debug!("Old config: {:?}", old_config);
     debug!("New config: {:?}", new_config);
-   
-    store_config_to_file(new_config).unwrap();
-}
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-struct Config {
-    keys: Keys,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-struct Keys {
-    live: Option<String>,
-    test: Option<String>,
-}
-
-#[derive(Debug)]
-pub struct CouldNotRetrieveConfig {}
-
-fn load_config_from_file() -> Result<Config, CouldNotRetrieveConfig> {
-
-    // TODO: This probably shouldn't be hardcoded to my user
-    let config_path = "/Users/pietro/.mol/conf.toml";
-
-    let contents = fs::read_to_string(config_path)
-        .expect("Something went wrong reading the file");
-    debug!("Config text loaded:\n\n{}", contents);
-
-    let config: Config = toml::from_str(&contents).unwrap();
-
-    debug!("Loaded config: {:?}", config);
-
-    Ok(config)
-}
-
-#[derive(Debug)]
-struct CouldNotSaveConfig {}
-
-fn store_config_to_file(config: Config) -> Result<(), CouldNotSaveConfig> {
-    // TODO: This probably shouldn't be hardcoded to my user
-    let config_path = "/Users/pietro/.mol/conf.toml";
-
-    fs::write(config_path, toml::to_string(&config).unwrap());
-    
-    Ok(())
+    config::save_to_file(new_config).unwrap();
 }
 
 pub struct ApiKey {
-    value: String
+    value: String,
 }
 
 #[derive(Debug)]
@@ -106,6 +64,6 @@ fn ask_api_key() -> Result<ApiKey, SorryCouldNotRetrieveApiKey> {
                 value: String::from(answer),
             })
         }
-        Err(_) => Err(SorryCouldNotRetrieveApiKey{}),
+        Err(_) => Err(SorryCouldNotRetrieveApiKey {}),
     }
 }

@@ -1,5 +1,5 @@
+use super::config;
 use clap::{Parser, Subcommand};
-use log::debug;
 
 mod store_api_key;
 

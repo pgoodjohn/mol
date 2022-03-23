@@ -1,9 +1,9 @@
-use log::{debug, warn, info};
-use requestty::Question;
-use serde::{Serialize, Deserialize};
-use reqwest::{StatusCode};
+use super::config;
 use super::molliesdk;
-use std::fs;
+use log::{debug, info, warn};
+use requestty::Question;
+use reqwest::StatusCode;
+use serde::{Deserialize, Serialize};
 use std::env;
 
 pub fn command() -> Result<(), &'static str> {
@@ -20,13 +20,16 @@ pub fn command() -> Result<(), &'static str> {
     let redirect_url = ask_redirect_url().unwrap();
     // Webhook (Optional fields [...])
 
-    // TODO: Create HTTP request 
-    let create_payment_request = CreatePaymentRequest{amount, description, redirect_url};
+    // TODO: Create HTTP request
+    let create_payment_request = CreatePaymentRequest {
+        amount,
+        description,
+        redirect_url,
+    };
     // TODO: If debug mode enabled show request and validate before sending
 
     // TODO: Send request to Mollie Dev - will need to look into tokio for async stuff probs
     execute_create_payment_request(create_payment_request);
-
 
     // TODO: Show some details of response
 
@@ -37,7 +40,7 @@ pub fn command() -> Result<(), &'static str> {
 struct MollieApiError {
     status: i32,
     title: String,
-    detail: String
+    detail: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -47,11 +50,12 @@ struct PaymentCreatedResponse {
     mode: String,
     description: String,
     method: Option<String>,
-    status: String
+    status: String,
 }
 
-fn execute_create_payment_request(create_payment_request: CreatePaymentRequest) -> Result<(), Box<dyn std::error::Error>> {
-
+fn execute_create_payment_request(
+    create_payment_request: CreatePaymentRequest,
+) -> Result<(), Box<dyn std::error::Error>> {
     debug!("Making HTTP Request");
 
     let request_json = &serde_json::json!({
@@ -66,13 +70,22 @@ fn execute_create_payment_request(create_payment_request: CreatePaymentRequest) 
     debug!("Request Body: {:?}", request_json);
 
     // Load API key from ~/.mol/conf.toml
-    let api_key = load_api_key_from_config().unwrap();
+    let api_key = config::api_key().unwrap();
 
     // TODO: Enable usage with production
     let client = reqwest::blocking::Client::new();
-    let response = client.post("https://api.mollie.dev/v2/payments")
+    let response = client
+        .post("https://api.mollie.dev/v2/payments")
         .bearer_auth(api_key)
-        .header(reqwest::header::USER_AGENT, format!("{} {} / {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_REPOSITORY")))
+        .header(
+            reqwest::header::USER_AGENT,
+            format!(
+                "{} {} / {}",
+                env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION"),
+                env!("CARGO_PKG_REPOSITORY")
+            ),
+        )
         .json(request_json)
         .send()?;
 
@@ -83,8 +96,14 @@ fn execute_create_payment_request(create_payment_request: CreatePaymentRequest) 
         debug!("{:?}", decoded_response);
 
         match decoded_response.method {
-            Some(_) => info!("I still don't support going to the method URL directly, but the payment ID is: {}", decoded_response.id),
-            None => info!("Pay this payment: https://mollie.dev/checkout/select-method/{}", decoded_response.id)
+            Some(_) => info!(
+                "I still don't support going to the method URL directly, but the payment ID is: {}",
+                decoded_response.id
+            ),
+            None => info!(
+                "Pay this payment: https://mollie.dev/checkout/select-method/{}",
+                decoded_response.id
+            ),
         }
 
         return Ok(());
@@ -97,72 +116,32 @@ fn execute_create_payment_request(create_payment_request: CreatePaymentRequest) 
     Ok(())
 }
 
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-struct Config {
-    keys: Keys,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-struct Keys {
-    live: Option<String>,
-    test: Option<String>,
-}
-
-#[derive(Debug)]
-pub struct CouldNotRetrieveConfig {}
-
-fn load_config_from_file() -> Result<Config, CouldNotRetrieveConfig> {
-
-    // TODO: This probably shouldn't be hardcoded to my user
-    let config_path = "/Users/pietro/.mol/conf.toml";
-
-    let contents = fs::read_to_string(config_path)
-        .expect("Something went wrong reading the file");
-    debug!("Config text loaded:\n\n{}", contents);
-
-    let config: Config = toml::from_str(&contents).unwrap();
-
-    debug!("Loaded config: {:?}", config);
-
-    Ok(config)
-}
-
-fn load_api_key_from_config() -> Result<String, CouldNotRetrieveConfig> {
-    let config = load_config_from_file().unwrap();
-
-    match config.keys.live {
-        Some(key) => Ok(key),
-        None => panic!("No API key set") // TODO: Do proper error handling
-    }
-}
-
 #[derive(Debug)]
 struct CreatePaymentRequest {
     amount: Amount,
     description: Description,
-    redirect_url :RedirectUrl,
+    redirect_url: RedirectUrl,
 }
 
 #[derive(Debug)]
 struct Currency {
-    code: String
+    code: String,
 }
 
 #[derive(Debug)]
 struct Amount {
     currency: Currency,
-    value: f64
+    value: f64,
 }
 
 #[derive(Debug)]
 struct Description {
-    value: String
+    value: String,
 }
 
 #[derive(Debug)]
 struct RedirectUrl {
-    value: String
+    value: String,
 }
 
 #[derive(Debug)]
@@ -187,7 +166,7 @@ fn ask_currency() -> Result<Currency, SorryCouldNotCreatePayment> {
                 code: String::from(answer),
             })
         }
-        Err(_) => Err(SorryCouldNotCreatePayment{}),
+        Err(_) => Err(SorryCouldNotCreatePayment {}),
     }
 }
 
@@ -205,14 +184,14 @@ fn ask_amount(currency: Currency) -> Result<Amount, SorryCouldNotCreatePayment> 
             debug!("Input amount {} - not yet validated", answer);
             let amount = Amount {
                 currency: currency,
-                value: answer
+                value: answer,
             };
             debug!("Amount {:?} (not validated)", amount);
 
             // TODO: add validation
             Ok(amount)
         }
-        Err(_) => Err(SorryCouldNotCreatePayment{}),
+        Err(_) => Err(SorryCouldNotCreatePayment {}),
     }
 }
 
@@ -235,7 +214,7 @@ fn ask_description() -> Result<Description, SorryCouldNotCreatePayment> {
                 value: String::from(answer),
             })
         }
-        Err(_) => Err(SorryCouldNotCreatePayment{}),
+        Err(_) => Err(SorryCouldNotCreatePayment {}),
     }
 }
 
@@ -258,6 +237,6 @@ fn ask_redirect_url() -> Result<RedirectUrl, SorryCouldNotCreatePayment> {
                 value: String::from(answer),
             })
         }
-        Err(_) => Err(SorryCouldNotCreatePayment{}),
+        Err(_) => Err(SorryCouldNotCreatePayment {}),
     }
 }

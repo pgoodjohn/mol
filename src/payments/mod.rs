@@ -1,6 +1,6 @@
-use clap::{Parser, Subcommand};
+use super::config;
 use super::molliesdk;
-use super::auth;
+use clap::{Parser, Subcommand};
 
 mod create_payment;
 
