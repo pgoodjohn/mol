@@ -42,6 +42,24 @@ pub fn api_key() -> Result<String, CouldNotRetrieveConfig> {
     }
 }
 
+pub fn api_key_test() -> Result<String, CouldNotRetrieveConfig> {
+    let config = from_file().unwrap();
+
+    match config.keys.test {
+        Some(key) => Ok(key),
+        None => panic!("No test API key set"), // TODO: Do proper error handling
+    }
+}
+
+pub fn access_code() -> Result<String, CouldNotRetrieveConfig> {
+    let config = from_file().unwrap();
+
+    match config.access_code {
+        Some(key) => Ok(key),
+        None => panic!("No API key set"), // TODO: Do proper error handling
+    }
+}
+
 pub fn api_url() -> Result<String, CouldNotRetrieveConfig> {
     let config = from_file().unwrap();
 

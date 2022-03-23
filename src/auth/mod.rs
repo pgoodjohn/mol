@@ -1,5 +1,6 @@
 use super::config;
 use clap::{Parser, Subcommand};
+use log::info;
 
 mod store;
 
@@ -16,6 +17,7 @@ pub struct AuthCommand {
 #[derive(Subcommand)]
 pub enum AuthCommands {
     /// Add a new API key
+    #[clap(arg_required_else_help(true))]
     Add {
         #[clap(short, long)]
         interactive: bool,
@@ -26,6 +28,8 @@ pub enum AuthCommands {
         #[clap(long)]
         access_code: Option<String>,
     },
+    /// Get Auth information
+    Get {}
 }
 
 pub fn command(command: &AuthCommand) {
@@ -58,6 +62,12 @@ pub fn command(command: &AuthCommand) {
                 }
                 None => {}
             }
+        }
+        Some(AuthCommands::Get {}) => {
+            info!("Retrieving current configuration");
+            info!("Live API Key: {}", config::api_key().unwrap());
+            info!("Test API Key: {}", config::api_key_test().unwrap());
+            info!("Access Token: {}", config::access_code().unwrap());
         }
         None => {}
     }
