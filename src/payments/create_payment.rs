@@ -4,6 +4,7 @@ use serde::{Serialize, Deserialize};
 use reqwest::{StatusCode};
 use super::molliesdk;
 use std::fs;
+use std::env;
 
 pub fn command() -> Result<(), &'static str> {
     debug!("Running Create Payment Command");
@@ -67,12 +68,11 @@ fn execute_create_payment_request(create_payment_request: CreatePaymentRequest) 
     // Load API key from ~/.mol/conf.toml
     let api_key = load_api_key_from_config().unwrap();
 
-    // TODO: Create command to store API key
     // TODO: Enable usage with production
-    // TODO: Set User Agent
     let client = reqwest::blocking::Client::new();
     let response = client.post("https://api.mollie.dev/v2/payments")
         .bearer_auth(api_key)
+        .header(reqwest::header::USER_AGENT, format!("{} {} / {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_REPOSITORY")))
         .json(request_json)
         .send()?;
 
