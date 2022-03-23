@@ -6,6 +6,7 @@ use toml;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
     pub api_url: String,
+    pub access_code: Option<String>,
     pub keys: Keys,
 }
 
