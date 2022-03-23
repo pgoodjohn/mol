@@ -5,6 +5,7 @@ use toml;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
+    pub api_url: String,
     pub keys: Keys,
 }
 
@@ -38,6 +39,12 @@ pub fn api_key() -> Result<String, CouldNotRetrieveConfig> {
         Some(key) => Ok(key),
         None => panic!("No API key set"), // TODO: Do proper error handling
     }
+}
+
+pub fn api_url() -> Result<String, CouldNotRetrieveConfig> {
+    let config = from_file().unwrap();
+
+    Ok(config.api_url)
 }
 
 #[derive(Debug)]

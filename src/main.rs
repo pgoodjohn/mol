@@ -5,6 +5,7 @@ mod config;
 mod logger;
 mod molliesdk;
 mod payments;
+mod env;
 
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
@@ -22,6 +23,8 @@ enum Commands {
     Payments(payments::PaymentsCommmand),
     /// Do Auth things
     Auth(auth::AuthCommand),
+    /// Do environmenty things
+    Env(env::EnvCommand) 
 }
 
 fn main() {
@@ -36,6 +39,7 @@ fn main() {
     match cli.command {
         Some(Commands::Payments(command)) => payments::command(&command),
         Some(Commands::Auth(command)) => auth::command(&command),
+        Some(Commands::Env(command)) => env::command(&command),
         None => {}
     }
 }
