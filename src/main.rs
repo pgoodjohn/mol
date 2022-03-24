@@ -6,6 +6,7 @@ mod logger;
 mod molliesdk;
 mod payments;
 mod env;
+mod org;
 
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
@@ -24,7 +25,9 @@ enum Commands {
     /// Do Auth things
     Auth(auth::AuthCommand),
     /// Do environmenty things
-    Env(env::EnvCommand) 
+    Env(env::EnvCommand),
+    /// Do Organizationy things
+    Org(org::OrgCommand)
 }
 
 fn main() {
@@ -40,6 +43,7 @@ fn main() {
         Some(Commands::Payments(command)) => payments::command(&command),
         Some(Commands::Auth(command)) => auth::command(&command),
         Some(Commands::Env(command)) => env::command(&command),
+        Some(Commands::Org(command)) => org::command(&command),
         None => {}
     }
 }
