@@ -1,10 +1,8 @@
 use super::config;
+use super::mollie_sdk;
 use clap::{Parser, Subcommand};
-use super::molliesdk;
-use log::warn;
 
 mod me;
-
 
 #[derive(Parser)]
 #[clap(version, about)]
@@ -19,21 +17,16 @@ pub struct OrgCommand {
 #[derive(Subcommand)]
 pub enum OrgCommands {
     /// Get the permissions for the currently stored access token
-    Permissions {}
+    Permissions {},
 }
 
 pub fn command(command: &OrgCommand) {
     match command.command.as_ref() {
-        Some(OrgCommands::Permissions { }) => {
+        Some(OrgCommands::Permissions {}) => {
             panic!("Not yet built")
         }
         None => {
-            match me::command() {
-                Ok(_) => {},
-                Err(_) => {
-                    warn!("Could not retrieve organization details")
-                }
-            }
+            me::command();
         }
     }
 }
