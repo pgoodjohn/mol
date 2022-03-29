@@ -1,7 +1,7 @@
 use super::config;
 use clap::{Parser, Subcommand};
 use log::info;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use strum::EnumString;
 
 mod update_environment;
@@ -21,8 +21,8 @@ pub enum EnvCommands {
     /// Set the API url (switch between dev and production)
     Url {
         #[clap(help = "prod, dev")]
-        environment: Environments
-    }
+        environment: Environments,
+    },
 }
 
 #[derive(EnumString, Debug)]
@@ -39,7 +39,10 @@ pub fn command(command: &EnvCommand) {
             update_environment::set_environment(&environment);
         }
         None => {
-            info!("Your mol-cli is configured to talk to: {}", config::api_url().unwrap());
+            info!(
+                "Your mol-cli is configured to talk to: {}",
+                config::api_url().unwrap()
+            );
             info!("To switch your configuration, run 'mol env url prod' or 'mol env url dev'")
         }
     }

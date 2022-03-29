@@ -1,4 +1,3 @@
-
 use super::config;
 use super::Environments;
 use log::debug;
@@ -9,10 +8,10 @@ pub fn set_environment(new_env: &Environments) {
     let mut new_config = old_config.clone();
     match new_env {
         Environments::Prod => {
-            new_config.api_url = String::from("https://api.mollie.com/");
-        },
+            new_config.api_url = String::from("https://api.mollie.com");
+        }
         Environments::Dev => {
-            new_config.api_url = String::from("https://api.mollie.dev/");
+            new_config.api_url = String::from("https://api.mollie.dev");
         }
     }
 
