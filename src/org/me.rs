@@ -1,6 +1,6 @@
 use super::config;
-use super::molliesdk;
 use log::{debug, warn};
+use super::mollie_sdk;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
@@ -50,7 +50,7 @@ fn execute_get_me_organization_request() -> Result<(), Box<dyn std::error::Error
     }
 
     // Any other response is an error
-    molliesdk::handle_mollie_api_error(response);
+    mollie_sdk::handle_mollie_api_error(response);
 
     // TODO: Return CLI error
     Ok(())

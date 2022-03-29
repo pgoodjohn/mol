@@ -2,11 +2,11 @@ use clap::{Parser, Subcommand};
 use log::debug;
 mod auth;
 mod config;
-mod logger;
-mod molliesdk;
-mod payments;
 mod env;
+mod logger;
+mod mollie_sdk;
 mod org;
+mod payments;
 
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
@@ -27,7 +27,7 @@ enum Commands {
     /// Do environmenty things
     Env(env::EnvCommand),
     /// Do Organizationy things
-    Org(org::OrgCommand)
+    Org(org::OrgCommand),
 }
 
 fn main() {

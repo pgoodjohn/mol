@@ -1,5 +1,5 @@
 use super::config;
-use super::molliesdk;
+use super::mollie_sdk;
 use log::{debug, info};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -65,7 +65,7 @@ fn execute_get_payment_request(payment_id: &String) -> Result<(), Box<dyn std::e
     }
 
     // Any other response is an error
-    molliesdk::handle_mollie_api_error(response);
+    mollie_sdk::handle_mollie_api_error(response);
 
     // TODO: Return CLI error
     Ok(())

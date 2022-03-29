@@ -33,4 +33,9 @@ pub fn handle_mollie_api_error(response: Response) {
         debug!("Response: {:?}", response);
         return;
     }
+
+    warn!("Request to the Mollie API failed in a spectacular and unexpected way.");
+    warn!("Response status code was: {}", response.status());
+    warn!("Run the command with the -d flag to get more details on the response");
+    debug!("Response: {:?}", response);
 }

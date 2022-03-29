@@ -1,5 +1,5 @@
 use super::config;
-use super::molliesdk;
+use super::mollie_sdk;
 use clap::{Parser, Subcommand};
 
 mod create_payment;

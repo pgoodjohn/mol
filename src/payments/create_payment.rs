@@ -1,5 +1,5 @@
 use super::config;
-use super::molliesdk;
+use super::mollie_sdk;
 use log::{debug, info, warn};
 use requestty::Question;
 use reqwest::StatusCode;
@@ -110,7 +110,7 @@ fn execute_create_payment_request(
     }
 
     // Any other response is an error
-    molliesdk::handle_mollie_api_error(response);
+    mollie_sdk::handle_mollie_api_error(response);
 
     // TODO: Return CLI error
     Ok(())
