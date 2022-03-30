@@ -1,9 +1,9 @@
 use log::debug;
 use serde::{Deserialize, Serialize};
+use std::error;
+use std::fmt;
 use std::fs;
 use std::io;
-use std::fmt;
-use std::error;
 use toml;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -25,7 +25,7 @@ pub enum CouldNotRetrieveConfig {
     UnableToParseFile(toml::de::Error),
     NoAccessCodeSet(),
     NoLiveApiKeySet(),
-    NoTestApiKeySet()
+    NoTestApiKeySet(),
 }
 
 impl fmt::Display for CouldNotRetrieveConfig {
@@ -33,7 +33,7 @@ impl fmt::Display for CouldNotRetrieveConfig {
         match *self {
             CouldNotRetrieveConfig::UnableToReadFile(ref err) => write!(f, "IO error: {}", err),
             CouldNotRetrieveConfig::UnableToParseFile(ref err) => write!(f, "TOML parse error: {}", err),
-            CouldNotRetrieveConfig::NoAccessCodeSet() => write!(f, "No Access Code set. Run 'mol auth add --access-code access-code or 'mol auth add -i' to set one up."),
+            CouldNotRetrieveConfig::NoAccessCodeSet() => write!(f, "No Access Code set. Run 'mol auth add --access-code {{access-code}} or 'mol auth add -i' to configure one."),
             CouldNotRetrieveConfig::NoLiveApiKeySet() => write!(f, "No Api Key set. Run 'mol auth add --api-key api-key or 'mol auth add -i' to set one up."),
             CouldNotRetrieveConfig::NoTestApiKeySet() => write!(f, "No testmode Api Key set. Run 'mol auth add --api-key api-key or 'mol auth add -i' to set one up."),
         }
@@ -52,16 +52,16 @@ impl error::Error for CouldNotRetrieveConfig {
     }
 }
 
-
-
 pub fn from_file() -> Result<Config, CouldNotRetrieveConfig> {
     // TODO: This probably shouldn't be hardcoded to my user
     let config_path = "/Users/pietro/.mol/conf.toml";
 
-    let contents = fs::read_to_string(config_path).map_err(CouldNotRetrieveConfig::UnableToReadFile)?;
+    let contents =
+        fs::read_to_string(config_path).map_err(CouldNotRetrieveConfig::UnableToReadFile)?;
     debug!("Config text loaded:\n\n{}", contents);
 
-    let config: Config = toml::from_str(&contents).map_err(CouldNotRetrieveConfig::UnableToParseFile)?;
+    let config: Config =
+        toml::from_str(&contents).map_err(CouldNotRetrieveConfig::UnableToParseFile)?;
 
     debug!("Loaded config: {:?}", config);
 
@@ -73,7 +73,7 @@ pub fn api_key() -> Result<String, CouldNotRetrieveConfig> {
 
     match config.keys.live {
         Some(key) => Ok(key),
-        None => Err(CouldNotRetrieveConfig::NoLiveApiKeySet())
+        None => Err(CouldNotRetrieveConfig::NoLiveApiKeySet()),
     }
 }
 
@@ -82,7 +82,7 @@ pub fn api_key_test() -> Result<String, CouldNotRetrieveConfig> {
 
     match config.keys.test {
         Some(key) => Ok(key),
-        None => Err(CouldNotRetrieveConfig::NoTestApiKeySet())
+        None => Err(CouldNotRetrieveConfig::NoTestApiKeySet()),
     }
 }
 
@@ -91,7 +91,7 @@ pub fn access_code() -> Result<String, CouldNotRetrieveConfig> {
 
     match config.access_code {
         Some(key) => Ok(key),
-        None => Err(CouldNotRetrieveConfig::NoAccessCodeSet())
+        None => Err(CouldNotRetrieveConfig::NoAccessCodeSet()),
     }
 }
 
@@ -111,7 +111,9 @@ impl fmt::Display for CouldNotSaveConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             CouldNotSaveConfig::UnableToWriteFile(ref err) => write!(f, "IO error: {}", err),
-            CouldNotSaveConfig::UnableToSerializeConfig(ref err) => write!(f, "TOML parse error: {}", err),
+            CouldNotSaveConfig::UnableToSerializeConfig(ref err) => {
+                write!(f, "TOML parse error: {}", err)
+            }
         }
     }
 }
@@ -129,7 +131,8 @@ pub fn save_to_file(config: Config) -> Result<(), CouldNotSaveConfig> {
     // TODO: This probably shouldn't be hardcoded to my user
     let config_path = "/Users/pietro/.mol/conf.toml";
 
-    let new_config_str = toml::to_string(&config).map_err(CouldNotSaveConfig::UnableToSerializeConfig)?;
+    let new_config_str =
+        toml::to_string(&config).map_err(CouldNotSaveConfig::UnableToSerializeConfig)?;
 
     fs::write(config_path, new_config_str).map_err(CouldNotSaveConfig::UnableToWriteFile)?;
 

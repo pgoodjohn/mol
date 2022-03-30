@@ -9,7 +9,6 @@ use std::env;
 pub fn command() -> Result<(), &'static str> {
     debug!("Running Create Payment Command");
 
-    // TODO: Ask for inputs
     // Currency
     let currency = ask_currency().unwrap();
     // Amount
@@ -20,11 +19,16 @@ pub fn command() -> Result<(), &'static str> {
     let redirect_url = ask_redirect_url().unwrap();
     // Webhook (Optional fields [...])
 
+    // Profile ID - prompted only if auth is via access code
+    let profile_id = ask_profile_id().unwrap();
+
+
     // TODO: Create HTTP request
     let create_payment_request = CreatePaymentRequest {
         amount,
         description,
         redirect_url,
+        profile_id
     };
     // TODO: If debug mode enabled show request and validate before sending
 
@@ -65,18 +69,16 @@ fn execute_create_payment_request(
             "currency": create_payment_request.amount.currency.code,
             "value": format!("{:.2}", create_payment_request.amount.value),
         },
+        "profileId": create_payment_request.profile_id
     });
 
     debug!("Request Body: {:?}", request_json);
 
-    // Load API key from ~/.mol/conf.toml
-    let api_key = config::api_key().unwrap();
-
-    // TODO: Enable usage with production
     let client = reqwest::blocking::Client::new();
     let response = client
-        .post("https://api.mollie.dev/v2/payments")
-        .bearer_auth(api_key)
+        .post(format!("{}/v2/payments", config::api_url().unwrap()))
+        // Load API key from ~/.mol/conf.toml
+        .bearer_auth(get_bearer_token_from_config().unwrap())
         .header(
             reqwest::header::USER_AGENT,
             format!(
@@ -95,13 +97,16 @@ fn execute_create_payment_request(
         let decoded_response = response.json::<PaymentCreatedResponse>().unwrap();
         debug!("{:?}", decoded_response);
 
+        // This should just check if there's a checkout URL on the response and then just print it
         match decoded_response.method {
             Some(_) => info!(
                 "I still don't support going to the method URL directly, but the payment ID is: {}",
                 decoded_response.id
             ),
             None => info!(
-                "Pay this payment: https://mollie.dev/checkout/select-method/{}",
+                // This shouldn't be api.mollie.xxx but just mollie.xxx
+                "Pay this payment: {}/checkout/select-method/{}",
+                config::api_url().unwrap(),
                 decoded_response.id
             ),
         }
@@ -116,11 +121,33 @@ fn execute_create_payment_request(
     Ok(())
 }
 
+fn get_bearer_token_from_config() -> Result<String, Box<dyn std::error::Error>> {
+    match config::access_code() {
+        Ok(access_code) => {
+            return Ok(access_code.to_string());
+        }
+        Err(_) => {
+            debug!("No access code set, trying to see if an API key is set instead")
+        }
+    }
+
+    match config::api_key() {
+        Ok(live_api_key) => {
+            return Ok(live_api_key.to_string());
+        }
+        Err (_) => {
+            // TODO: Handle this error better - probably check it also before doing all the prompts
+            panic!("No auth set!!!")
+        }
+    }
+}
+
 #[derive(Debug)]
 struct CreatePaymentRequest {
     amount: Amount,
     description: Description,
     redirect_url: RedirectUrl,
+    profile_id: Option<String>
 }
 
 #[derive(Debug)]
@@ -236,6 +263,37 @@ fn ask_redirect_url() -> Result<RedirectUrl, SorryCouldNotCreatePayment> {
             Ok(RedirectUrl {
                 value: String::from(answer),
             })
+        }
+        Err(_) => Err(SorryCouldNotCreatePayment {}),
+    }
+}
+
+fn ask_profile_id() -> Result<Option<String>, SorryCouldNotCreatePayment> {
+
+    match config::access_code() {
+        Ok(_) => {
+            // found access code, continue
+        },
+        Err(_) => {
+            return Ok(None);
+        }
+    }
+
+    let question = Question::input("profile_id")
+        .message("Input a profile id")
+        .default("pfl_CRjJMqbnVr")
+        .build();
+
+    let answer = requestty::prompt_one(question);
+
+    match answer {
+        Ok(result) => {
+            let answer = result.as_string().unwrap();
+
+            debug!("Redirect URL: {} - not yet validated", answer);
+
+            // TODO: add validation
+            Ok(Some(String::from(answer)))
         }
         Err(_) => Err(SorryCouldNotCreatePayment {}),
     }

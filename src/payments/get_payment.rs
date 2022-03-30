@@ -32,7 +32,7 @@ fn execute_get_payment_request(payment_id: &String) -> Result<(), Box<dyn std::e
     // TODO: Enable usage with production
     let client = reqwest::blocking::Client::new();
     let response = client
-        .get(format!("https://api.mollie.dev/v2/payments/{}", payment_id))
+        .get(format!("{}/v2/payments/{}", config::api_url().unwrap(), payment_id))
         .bearer_auth(api_key)
         .header(
             reqwest::header::USER_AGENT,
@@ -57,7 +57,7 @@ fn execute_get_payment_request(payment_id: &String) -> Result<(), Box<dyn std::e
         if decoded_response.status == "open" {
             match decoded_response.method {
                 Some(_) => info!("I still don't support going to the method URL directly, but the payment ID is: {}", decoded_response.id),
-                None => info!("Pay this payment: https://mollie.dev/checkout/select-method/{}", decoded_response.id)
+                None => info!("Pay this payment: {}/checkout/select-method/{}", config::api_url().unwrap(), decoded_response.id)
             }
         }
 
