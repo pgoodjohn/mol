@@ -29,7 +29,7 @@ pub enum AuthCommands {
         access_code: Option<String>,
     },
     /// Get Auth information
-    Get {}
+    Get {},
 }
 
 pub fn command(command: &AuthCommand) {
@@ -37,7 +37,7 @@ pub fn command(command: &AuthCommand) {
         Some(AuthCommands::Add {
             interactive,
             api_key,
-            access_code
+            access_code,
         }) => {
             match interactive {
                 true => {
@@ -65,9 +65,9 @@ pub fn command(command: &AuthCommand) {
         }
         Some(AuthCommands::Get {}) => {
             info!("Retrieving current configuration");
-            info!("Live API Key: {}", config::api_key().unwrap());
-            info!("Test API Key: {}", config::api_key_test().unwrap());
-            info!("Access Token: {}", config::access_code().unwrap());
+            info!("Live API Key: {:?}", config::api_key().ok());
+            info!("Test API Key: {:?}", config::api_key_test().ok());
+            info!("Access Token: {:?}", config::access_code().ok());
         }
         None => {}
     }

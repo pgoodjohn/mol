@@ -113,7 +113,7 @@ impl AccessCode {
         if access_code_format.is_match(&value) == false {
             panic!("Invalid Access Code format");
         }
-        
+
         AccessCode { value }
     }
 }
