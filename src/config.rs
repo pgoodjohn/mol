@@ -4,6 +4,8 @@ use std::error;
 use std::fmt;
 use std::fs;
 use std::io;
+use std::path::PathBuf;
+extern crate dirs;
 use toml;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -53,11 +55,8 @@ impl error::Error for CouldNotRetrieveConfig {
 }
 
 pub fn from_file() -> Result<Config, CouldNotRetrieveConfig> {
-    // TODO: This probably shouldn't be hardcoded to my user
-    let config_path = "/Users/pietro/.mol/conf.toml";
-
     let contents =
-        fs::read_to_string(config_path).map_err(CouldNotRetrieveConfig::UnableToReadFile)?;
+        fs::read_to_string(config_path()).map_err(CouldNotRetrieveConfig::UnableToReadFile)?;
     debug!("Config text loaded:\n\n{}", contents);
 
     let config: Config =
@@ -128,13 +127,23 @@ impl error::Error for CouldNotSaveConfig {
 }
 
 pub fn save_to_file(config: Config) -> Result<(), CouldNotSaveConfig> {
-    // TODO: This probably shouldn't be hardcoded to my user
-    let config_path = "/Users/pietro/.mol/conf.toml";
-
     let new_config_str =
         toml::to_string(&config).map_err(CouldNotSaveConfig::UnableToSerializeConfig)?;
 
-    fs::write(config_path, new_config_str).map_err(CouldNotSaveConfig::UnableToWriteFile)?;
+    fs::write(config_path(), new_config_str).map_err(CouldNotSaveConfig::UnableToWriteFile)?;
 
     Ok(())
+}
+
+fn config_path() -> PathBuf {
+    let mut config_path = PathBuf::new();
+
+    if cfg!(debug_assertions) {
+        config_path.push("/tmp/.mol/conf.toml");
+    } else {
+        config_path.push(dirs::home_dir().unwrap());
+        config_path.push(".mol/conf.toml");
+    }
+
+    config_path
 }
