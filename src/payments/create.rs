@@ -1,13 +1,47 @@
 use super::config;
-use super::mollie_sdk;
-use log::{debug, info, warn};
+use log::{debug, info};
 use requestty::Question;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
-use std::env;
 
-pub fn command() -> Result<(), &'static str> {
+use super::mollie_sdk;
+
+pub fn command(
+    input_currency: Option<&String>,
+    input_amount: Option<&String>,
+    input_description: Option<&String>,
+    input_redirect_url: Option<&String>,
+    input_profile_id: Option<&String>,
+    debug: &bool,
+) {
     debug!("Running Create Payment Command");
+    let currency = Currency(String::from(input_currency.unwrap()));
+    let amount = Amount {
+        currency: currency,
+        value: input_amount.unwrap().parse::<f64>().unwrap(),
+    };
+    let description = Description(String::from(input_description.unwrap()));
+    let redirect_url = RedirectUrl(String::from(input_redirect_url.unwrap()));
+    let profile_id = Some(String::from(input_profile_id.unwrap()));
+
+    let create_payment_request = CreatePaymentRequest {
+        amount,
+        description,
+        redirect_url,
+        profile_id,
+    };
+
+    if debug == &true {
+        let json = serde_json::to_string(&create_payment_request).unwrap();
+        debug!("Request Body: {:?}", json);
+        ask_confirmation();
+    }
+
+    execute_request(create_payment_request);
+}
+
+pub fn interactive(debug: &bool) {
+    debug!("Running interactive Create Payment Command");
 
     // Currency
     let currency = ask_currency().unwrap();
@@ -18,67 +52,51 @@ pub fn command() -> Result<(), &'static str> {
     // Redirect URL
     let redirect_url = ask_redirect_url().unwrap();
     // Webhook (Optional fields [...])
-
     // Profile ID - prompted only if auth is via access code
     let profile_id = ask_profile_id().unwrap();
-
-
-    // TODO: Create HTTP request
     let create_payment_request = CreatePaymentRequest {
         amount,
         description,
         redirect_url,
-        profile_id
+        profile_id,
     };
-    // TODO: If debug mode enabled show request and validate before sending
 
-    // TODO: Send request to Mollie Dev - will need to look into tokio for async stuff probs
-    execute_create_payment_request(create_payment_request);
+    if debug == &true {
+        let json = serde_json::to_string(&create_payment_request).unwrap();
+        debug!("Request Body: {:?}", json);
+        ask_confirmation();
+    }
 
-    // TODO: Show some details of response
-
-    Ok(())
+    execute_request(create_payment_request);
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct MollieApiError {
-    status: i32,
-    title: String,
-    detail: String,
+#[derive(Serialize, Debug)]
+struct CreatePaymentRequest {
+    amount: Amount,
+    description: Description,
+    redirect_url: RedirectUrl,
+    profile_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct PaymentCreatedResponse {
     resource: String,
     id: String,
-    mode: String,
     description: String,
     method: Option<String>,
     status: String,
+    mode: String,
 }
 
-fn execute_create_payment_request(
-    create_payment_request: CreatePaymentRequest,
-) -> Result<(), Box<dyn std::error::Error>> {
-    debug!("Making HTTP Request");
-
-    let request_json = &serde_json::json!({
-        "description": create_payment_request.description.value,
-        "redirectUrl": create_payment_request.redirect_url.value,
-        "amount": {
-            "currency": create_payment_request.amount.currency.code,
-            "value": format!("{:.2}", create_payment_request.amount.value),
-        },
-        "profileId": create_payment_request.profile_id
-    });
-
-    debug!("Request Body: {:?}", request_json);
+fn execute_request(request: CreatePaymentRequest) -> Result<(), Box<dyn std::error::Error>> {
+    debug!("Connecting with the Mollie API");
+    let bearer_token = get_bearer_token_from_config().unwrap();
 
     let client = reqwest::blocking::Client::new();
     let response = client
         .post(format!("{}/v2/payments", config::api_url().unwrap()))
         // Load API key from ~/.mol/conf.toml
-        .bearer_auth(get_bearer_token_from_config().unwrap())
+        .bearer_auth(bearer_token.value)
         .header(
             reqwest::header::USER_AGENT,
             format!(
@@ -88,7 +106,7 @@ fn execute_create_payment_request(
                 env!("CARGO_PKG_REPOSITORY")
             ),
         )
-        .json(request_json)
+        .json(&serde_json::to_string(&request).unwrap())
         .send()?;
 
     // HTTP 201 Response means the payment was created successfully
@@ -116,15 +134,27 @@ fn execute_create_payment_request(
 
     // Any other response is an error
     mollie_sdk::handle_mollie_api_error(response);
-
-    // TODO: Return CLI error
     Ok(())
 }
 
-fn get_bearer_token_from_config() -> Result<String, Box<dyn std::error::Error>> {
+struct MollieApiBearerToken {
+    value: String,
+    token_type: MollieApiTokenTypes,
+}
+
+#[derive(PartialEq)]
+enum MollieApiTokenTypes {
+    ApiKey,
+    AccessCode,
+}
+
+fn get_bearer_token_from_config() -> Result<MollieApiBearerToken, Box<dyn std::error::Error>> {
     match config::access_code() {
         Ok(access_code) => {
-            return Ok(access_code.to_string());
+            return Ok(MollieApiBearerToken {
+                value: access_code.to_string(),
+                token_type: MollieApiTokenTypes::AccessCode,
+            });
         }
         Err(_) => {
             debug!("No access code set, trying to see if an API key is set instead")
@@ -133,43 +163,62 @@ fn get_bearer_token_from_config() -> Result<String, Box<dyn std::error::Error>> 
 
     match config::api_key() {
         Ok(live_api_key) => {
-            return Ok(live_api_key.to_string());
+            return Ok(MollieApiBearerToken {
+                value: live_api_key.to_string(),
+                token_type: MollieApiTokenTypes::ApiKey,
+            });
         }
-        Err (_) => {
+        Err(_) => {
             // TODO: Handle this error better - probably check it also before doing all the prompts
             panic!("No auth set!!!")
         }
     }
 }
 
-#[derive(Debug)]
-struct CreatePaymentRequest {
-    amount: Amount,
-    description: Description,
-    redirect_url: RedirectUrl,
-    profile_id: Option<String>
+fn ask_confirmation() {
+    let question = Question::confirm("request")
+        .message("Are you sure? [y/N]")
+        .default(false)
+        .build();
+
+    let answer = requestty::prompt_one(question);
+
+    match answer {
+        Ok(result) => {
+            let answer = result.as_bool().unwrap();
+
+            match answer {
+                true => {
+                    debug!("Ok - continuing")
+                }
+                false => {
+                    debug!("oh oh");
+                    panic!("aborting")
+                }
+            }
+
+            return;
+        }
+        Err(_) => {
+            panic!("Smth went wrong :O")
+        }
+    }
 }
 
-#[derive(Debug)]
-struct Currency {
-    code: String,
-}
+#[derive(Serialize, Debug)]
+struct Currency(String);
 
-#[derive(Debug)]
+#[derive(Serialize, Debug)]
 struct Amount {
     currency: Currency,
     value: f64,
 }
 
-#[derive(Debug)]
-struct Description {
-    value: String,
-}
+#[derive(Serialize, Debug)]
+struct Description(String);
 
-#[derive(Debug)]
-struct RedirectUrl {
-    value: String,
-}
+#[derive(Serialize, Debug)]
+struct RedirectUrl(String);
 
 #[derive(Debug)]
 struct SorryCouldNotCreatePayment {}
@@ -189,9 +238,7 @@ fn ask_currency() -> Result<Currency, SorryCouldNotCreatePayment> {
             debug!("Selected currency {} - not yet validated", answer);
 
             // TODO: add validation
-            Ok(Currency {
-                code: String::from(answer),
-            })
+            Ok(Currency(String::from(answer)))
         }
         Err(_) => Err(SorryCouldNotCreatePayment {}),
     }
@@ -237,9 +284,7 @@ fn ask_description() -> Result<Description, SorryCouldNotCreatePayment> {
             debug!("Description: {} - not yet validated", answer);
 
             // TODO: add validation
-            Ok(Description {
-                value: String::from(answer),
-            })
+            Ok(Description(String::from(answer)))
         }
         Err(_) => Err(SorryCouldNotCreatePayment {}),
     }
@@ -260,20 +305,17 @@ fn ask_redirect_url() -> Result<RedirectUrl, SorryCouldNotCreatePayment> {
             debug!("Redirect URL: {} - not yet validated", answer);
 
             // TODO: add validation
-            Ok(RedirectUrl {
-                value: String::from(answer),
-            })
+            Ok(RedirectUrl(String::from(answer)))
         }
         Err(_) => Err(SorryCouldNotCreatePayment {}),
     }
 }
 
 fn ask_profile_id() -> Result<Option<String>, SorryCouldNotCreatePayment> {
-
     match config::access_code() {
         Ok(_) => {
             // found access code, continue
-        },
+        }
         Err(_) => {
             return Ok(None);
         }

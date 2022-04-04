@@ -2,7 +2,7 @@ use super::config;
 use super::mollie_sdk;
 use clap::{Parser, Subcommand};
 
-mod create_payment;
+mod create;
 mod get_payment;
 
 #[derive(Parser)]
@@ -18,7 +18,28 @@ pub struct PaymentsCommmand {
 #[derive(Subcommand)]
 pub enum PaymentsCommands {
     /// Create a new payment
-    Create {},
+    Create {
+        #[clap(short, long, global = true)]
+        debug: bool,
+
+        #[clap(short, long)]
+        interactive: bool,
+
+        #[clap(long)]
+        currency: Option<String>,
+
+        #[clap(long)]
+        amount: Option<String>,
+
+        #[clap(long)]
+        description: Option<String>,
+
+        #[clap(long)]
+        redirect_url: Option<String>,
+
+        #[clap(long)]
+        profile_id: Option<String>,
+    },
     /// Get a payment's info
     #[clap(arg_required_else_help(true))]
     Get {
@@ -29,8 +50,31 @@ pub enum PaymentsCommands {
 
 pub fn command(payments_command: &PaymentsCommmand) {
     match payments_command.command.as_ref() {
-        Some(PaymentsCommands::Create {}) => {
-            create_payment::command().unwrap();
+        Some(PaymentsCommands::Create {
+            debug,
+            interactive,
+            currency,
+            amount,
+            description,
+            redirect_url,
+            profile_id,
+        }) => {
+            match interactive {
+                true => {
+                    create::interactive(debug);
+                    return;
+                }
+                false => {}
+            }
+
+            create::command(
+                currency.as_ref(),
+                amount.as_ref(),
+                description.as_ref(),
+                redirect_url.as_ref(),
+                profile_id.as_ref(),
+                debug,
+            );
         }
         Some(PaymentsCommands::Get { id }) => {
             get_payment::command(id).unwrap();
