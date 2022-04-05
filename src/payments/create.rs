@@ -92,26 +92,9 @@ struct PaymentCreatedResponse {
 
 fn execute_request(request: CreatePaymentRequest) -> Result<(), Box<dyn std::error::Error>> {
     debug!("Connecting with the Mollie API");
-    let bearer_token = get_bearer_token_from_config().unwrap();
 
-    debug!("{:?}", &serde_json::to_string(&request).unwrap());
-
-    let client = reqwest::blocking::Client::new();
-    let response = client
-        .post(format!("{}/v2/payments", config::api_url().unwrap()))
-        // Load API key from ~/.mol/conf.toml
-        .bearer_auth(bearer_token.value)
-        .header(
-            reqwest::header::USER_AGENT,
-            format!(
-                "{} {} / {}",
-                env!("CARGO_PKG_NAME"),
-                env!("CARGO_PKG_VERSION"),
-                env!("CARGO_PKG_REPOSITORY")
-            ),
-        )
-        .json(&request)
-        .send()?;
+    let client = mollie_sdk::ApiClient::new();
+    let response = client.post(request, String::from("v2/payments")).unwrap();
 
     // HTTP 201 Response means the payment was created successfully
     if response.status() == StatusCode::CREATED {
@@ -139,44 +122,6 @@ fn execute_request(request: CreatePaymentRequest) -> Result<(), Box<dyn std::err
     // Any other response is an error
     mollie_sdk::handle_mollie_api_error(response);
     Ok(())
-}
-
-struct MollieApiBearerToken {
-    value: String,
-    token_type: MollieApiTokenTypes,
-}
-
-#[derive(PartialEq)]
-enum MollieApiTokenTypes {
-    ApiKey,
-    AccessCode,
-}
-
-fn get_bearer_token_from_config() -> Result<MollieApiBearerToken, Box<dyn std::error::Error>> {
-    match config::access_code() {
-        Ok(access_code) => {
-            return Ok(MollieApiBearerToken {
-                value: access_code.to_string(),
-                token_type: MollieApiTokenTypes::AccessCode,
-            });
-        }
-        Err(_) => {
-            debug!("No access code set, trying to see if an API key is set instead")
-        }
-    }
-
-    match config::api_key() {
-        Ok(live_api_key) => {
-            return Ok(MollieApiBearerToken {
-                value: live_api_key.to_string(),
-                token_type: MollieApiTokenTypes::ApiKey,
-            });
-        }
-        Err(_) => {
-            // TODO: Handle this error better - probably check it also before doing all the prompts
-            panic!("No auth set!!!")
-        }
-    }
 }
 
 fn ask_confirmation() {

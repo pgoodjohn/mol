@@ -1,7 +1,88 @@
+use super::config;
 use log::{debug, warn};
+use reqwest::blocking::Client;
 use reqwest::blocking::Response;
 use reqwest::StatusCode;
+use serde::ser;
 use serde::{Deserialize, Serialize};
+
+pub struct ApiClient {
+    base_url: String,
+    auth_token: ApiBearerToken,
+    client: Client,
+}
+
+impl ApiClient {
+    pub fn new() -> ApiClient {
+        ApiClient {
+            base_url: config::api_url().unwrap(),
+            auth_token: get_bearer_token_from_config().unwrap(),
+            client: reqwest::blocking::Client::new(),
+        }
+    }
+
+    pub fn post<T: ser::Serialize>(
+        &self,
+        request: T,
+        url: String,
+    ) -> Result<reqwest::blocking::Response, Box<dyn std::error::Error>> {
+        let response = self
+            .client
+            .post(format!("{}/{}", String::from(&self.base_url), url))
+            .bearer_auth(String::from(&self.auth_token.value))
+            .header(
+                reqwest::header::USER_AGENT,
+                format!(
+                    "{} {} / {}",
+                    env!("CARGO_PKG_NAME"),
+                    env!("CARGO_PKG_VERSION"),
+                    env!("CARGO_PKG_REPOSITORY")
+                ),
+            )
+            .json(&request)
+            .send()?;
+
+        Ok(response)
+    }
+}
+
+struct ApiBearerToken {
+    value: String,
+    token_type: ApiTokenTypes,
+}
+
+#[derive(PartialEq)]
+enum ApiTokenTypes {
+    ApiKey,
+    AccessCode,
+}
+
+fn get_bearer_token_from_config() -> Result<ApiBearerToken, Box<dyn std::error::Error>> {
+    match config::access_code() {
+        Ok(access_code) => {
+            return Ok(ApiBearerToken {
+                value: access_code.to_string(),
+                token_type: ApiTokenTypes::AccessCode,
+            });
+        }
+        Err(_) => {
+            debug!("No access code set, trying to see if an API key is set instead")
+        }
+    }
+
+    match config::api_key() {
+        Ok(live_api_key) => {
+            return Ok(ApiBearerToken {
+                value: live_api_key.to_string(),
+                token_type: ApiTokenTypes::ApiKey,
+            });
+        }
+        Err(_) => {
+            // TODO: Handle this error better - probably check it also before doing all the prompts
+            panic!("No auth set!!!")
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct MollieApiError {
