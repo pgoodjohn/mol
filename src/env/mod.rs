@@ -1,7 +1,6 @@
 use super::config;
 use clap::{Parser, Subcommand};
 use log::info;
-use serde::{Deserialize, Serialize};
 use strum::EnumString;
 
 mod update_environment;

@@ -20,7 +20,6 @@ struct PermissionsResources {
 
 #[derive(Deserialize, Debug)]
 struct PermissionResource {
-    resource: String,
     id: String,
     description: String,
     granted: bool,

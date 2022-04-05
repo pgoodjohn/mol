@@ -4,29 +4,23 @@ use regex::Regex;
 use requestty::Question;
 use strum::EnumString;
 
-pub fn interactive() -> Result<(), &'static str> {
+pub fn interactive() {
     let new_api_key = ask_api_key().unwrap();
 
     // TODO: Implement access code through interactive command
     store_api_key(new_api_key);
-
-    Ok(())
 }
 
-pub fn api_key(api_key: &String) -> Result<(), &'static str> {
+pub fn api_key(api_key: &String) {
     let new_api_key = ApiKey::from_string(String::from(api_key));
 
     store_api_key(new_api_key);
-
-    Ok(())
 }
 
-pub fn access_code(access_code: &String) -> Result<(), &'static str> {
+pub fn access_code(access_code: &String) {
     let new_access_code = AccessCode::from_string(String::from(access_code));
 
     store_access_token(new_access_code);
-
-    Ok(())
 }
 
 fn store_access_token(new_access_code: AccessCode) {
