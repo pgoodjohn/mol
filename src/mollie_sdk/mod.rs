@@ -28,8 +28,8 @@ impl ApiClient {
     ) -> Result<reqwest::blocking::Response, Box<dyn std::error::Error>> {
         let response = self
             .client
-            .post(format!("{}/{}", String::from(&self.base_url), url))
-            .bearer_auth(String::from(&self.auth_token.value))
+            .post(format!("{}/{}", &self.base_url, url))
+            .bearer_auth(&self.auth_token.value)
             .header(
                 reqwest::header::USER_AGENT,
                 format!(
