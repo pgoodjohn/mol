@@ -50,7 +50,6 @@ impl ApiClient {
         url: String,
         parameter: Option<String>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error> {
-
         let mut full_url: String;
 
         match parameter {

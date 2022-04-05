@@ -10,12 +10,12 @@ pub fn command() {
 #[derive(Deserialize, Debug)]
 struct PermissionsResponse {
     #[serde(rename(deserialize = "_embedded"))]
-    embedded: PermissionsResources
+    embedded: PermissionsResources,
 }
 
 #[derive(Deserialize, Debug)]
 struct PermissionsResources {
-    permissions: Vec<PermissionResource>
+    permissions: Vec<PermissionResource>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -30,19 +30,22 @@ fn get_permissions_from_api() {
     let client = mollie_sdk::ApiClient::new();
     let response = client.get(String::from("v2/permissions"), None).unwrap();
 
-        // HTTP 200 Response means the request was successful
-        if response.status() == StatusCode::OK {
-            debug!("Successfull call to the Mollie API!");
-            let decoded_response = response.json::<PermissionsResponse>().unwrap();
-            debug!("{:?}", decoded_response);
+    // HTTP 200 Response means the request was successful
+    if response.status() == StatusCode::OK {
+        debug!("Successfull call to the Mollie API!");
+        let decoded_response = response.json::<PermissionsResponse>().unwrap();
+        debug!("{:?}", decoded_response);
 
-            for permission in decoded_response.embedded.permissions {
-                info!("{} - {} - Granted: {}", permission.id, permission.description, permission.granted)
-            }
-
-            return;
+        for permission in decoded_response.embedded.permissions {
+            info!(
+                "{} - {} - Granted: {}",
+                permission.id, permission.description, permission.granted
+            )
         }
-    
-        // Any other response is an error
-        mollie_sdk::handle_mollie_api_error(response);
+
+        return;
+    }
+
+    // Any other response is an error
+    mollie_sdk::handle_mollie_api_error(response);
 }
