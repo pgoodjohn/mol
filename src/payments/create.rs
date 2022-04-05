@@ -90,7 +90,7 @@ struct PaymentCreatedResponse {
     mode: String,
 }
 
-fn execute_request(request: CreatePaymentRequest) -> Result<(), Box<dyn std::error::Error>> {
+fn execute_request(request: CreatePaymentRequest) {
     debug!("Connecting with the Mollie API");
 
     let client = mollie_sdk::ApiClient::new();
@@ -116,12 +116,11 @@ fn execute_request(request: CreatePaymentRequest) -> Result<(), Box<dyn std::err
             ),
         }
 
-        return Ok(());
+        return;
     }
 
     // Any other response is an error
     mollie_sdk::handle_mollie_api_error(response);
-    Ok(())
 }
 
 fn ask_confirmation() {
