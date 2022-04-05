@@ -25,7 +25,7 @@ impl ApiClient {
         &self,
         request: T,
         url: String,
-    ) -> Result<reqwest::blocking::Response, Box<dyn std::error::Error>> {
+    ) -> Result<reqwest::blocking::Response, reqwest::Error> {
         let response = self
             .client
             .post(format!("{}/{}", &self.base_url, url))
@@ -49,7 +49,7 @@ impl ApiClient {
         &self,
         url: String,
         parameter: String,
-    ) -> Result<reqwest::blocking::Response, Box<dyn std::error::Error>> {
+    ) -> Result<reqwest::blocking::Response, reqwest::Error> {
         let response = self
             .client
             .get(format!("{}/{}/{}", &self.base_url, url, parameter))

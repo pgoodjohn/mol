@@ -1,4 +1,3 @@
-use super::config;
 use super::mollie_sdk;
 use clap::{Parser, Subcommand};
 
