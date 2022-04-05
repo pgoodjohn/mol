@@ -4,6 +4,7 @@ use clap::{Parser, Subcommand};
 
 mod create;
 mod get;
+mod list;
 
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
@@ -46,6 +47,8 @@ pub enum PaymentsCommands {
         #[clap(short, long)]
         id: String,
     },
+    /// List payments
+    List {},
 }
 
 pub fn command(payments_command: &PaymentsCommmand) {
@@ -78,6 +81,9 @@ pub fn command(payments_command: &PaymentsCommmand) {
         }
         Some(PaymentsCommands::Get { id }) => {
             get::command(id).unwrap();
+        },
+        Some(PaymentsCommands::List{}) => {
+            list::command();
         }
         None => {}
     }
