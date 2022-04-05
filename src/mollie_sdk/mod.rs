@@ -48,11 +48,19 @@ impl ApiClient {
     pub fn get(
         &self,
         url: String,
-        parameter: String,
+        parameter: Option<String>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error> {
+
+        let mut full_url: String;
+
+        match parameter {
+            Some(p) => full_url = format!("{}/{}/{}", &self.base_url, url, p),
+            None => full_url = format!("{}/{}", &self.base_url, url),
+        }
+
         let response = self
             .client
-            .get(format!("{}/{}/{}", &self.base_url, url, parameter))
+            .get(full_url)
             .bearer_auth(&self.auth_token.value)
             .header(
                 reqwest::header::USER_AGENT,

@@ -2,6 +2,7 @@ use super::mollie_sdk;
 use clap::{Parser, Subcommand};
 
 mod me;
+mod permissions;
 
 #[derive(Parser)]
 #[clap(version, about)]
@@ -22,7 +23,7 @@ pub enum OrgCommands {
 pub fn command(command: &OrgCommand) {
     match command.command.as_ref() {
         Some(OrgCommands::Permissions {}) => {
-            panic!("Not yet built")
+            permissions::command();
         }
         None => {
             me::command();

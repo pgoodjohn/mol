@@ -26,7 +26,7 @@ fn get_payment_from_api(payment_id: &String) {
     debug!("Making HTTP Request");
 
     let mollie_client = mollie_sdk::ApiClient::new();
-    let response = mollie_client.get(String::from("v2/payments"), String::from(payment_id)).unwrap();
+    let response = mollie_client.get(String::from("v2/payments"), Some(String::from(payment_id))).unwrap();
 
     // Load API key from ~/.mol/conf.tom
     // HTTP 200 Response means the payment was found

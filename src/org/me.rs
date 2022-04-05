@@ -60,7 +60,7 @@ fn get_current_organization_from_api() -> Result<OrganizationsResponse, Box<dyn 
 {
     let client = mollie_sdk::ApiClient::new();
     let response = client
-        .get(String::from("v2/organizations"), String::from("me"))
+        .get(String::from("v2/organizations"), Some(String::from("me")))
         .map_err(CouldNotRetrieveOrganizationInformation::SomethingWentWrongWithTheRequest)?;
 
     // HTTP 200 Response means the request was successful
