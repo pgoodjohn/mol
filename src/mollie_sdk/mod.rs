@@ -44,6 +44,29 @@ impl ApiClient {
 
         Ok(response)
     }
+
+    pub fn get(
+        &self,
+        url: String,
+        parameter: String,
+    ) -> Result<reqwest::blocking::Response, Box<dyn std::error::Error>> {
+        let response = self
+            .client
+            .get(format!("{}/{}/{}", &self.base_url, url, parameter))
+            .bearer_auth(&self.auth_token.value)
+            .header(
+                reqwest::header::USER_AGENT,
+                format!(
+                    "{} {} / {}",
+                    env!("CARGO_PKG_NAME"),
+                    env!("CARGO_PKG_VERSION"),
+                    env!("CARGO_PKG_REPOSITORY")
+                ),
+            )
+            .send()?;
+
+        Ok(response)
+    }
 }
 
 struct ApiBearerToken {

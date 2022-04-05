@@ -3,12 +3,11 @@ use super::mollie_sdk;
 use log::{debug, info};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
-use std::fs;
 
 pub fn command(payment_id: &String) -> Result<(), &'static str> {
     debug!("Running Get API Payment for payment: {}", payment_id);
 
-    execute_get_payment_request(payment_id);
+    get_payment_from_api(payment_id);
 
     Ok(())
 }
@@ -23,28 +22,13 @@ struct PaymentResponse {
     status: String,
 }
 
-fn execute_get_payment_request(payment_id: &String) -> Result<(), Box<dyn std::error::Error>> {
+fn get_payment_from_api(payment_id: &String) {
     debug!("Making HTTP Request");
 
-    // Load API key from ~/.mol/conf.toml
-    let api_key = config::api_key().unwrap();
+    let mollie_client = mollie_sdk::ApiClient::new();
+    let response = mollie_client.get(String::from("v2/payments"), String::from(payment_id)).unwrap();
 
-    // TODO: Enable usage with production
-    let client = reqwest::blocking::Client::new();
-    let response = client
-        .get(format!("{}/v2/payments/{}", config::api_url().unwrap(), payment_id))
-        .bearer_auth(api_key)
-        .header(
-            reqwest::header::USER_AGENT,
-            format!(
-                "{} {} / {}",
-                env!("CARGO_PKG_NAME"),
-                env!("CARGO_PKG_VERSION"),
-                env!("CARGO_PKG_REPOSITORY")
-            ),
-        )
-        .send()?;
-
+    // Load API key from ~/.mol/conf.tom
     // HTTP 200 Response means the payment was found
     if response.status() == StatusCode::OK {
         debug!("Successfull call to the Mollie API!");
@@ -61,12 +45,9 @@ fn execute_get_payment_request(payment_id: &String) -> Result<(), Box<dyn std::e
             }
         }
 
-        return Ok(());
+        return;
     }
 
     // Any other response is an error
     mollie_sdk::handle_mollie_api_error(response);
-
-    // TODO: Return CLI error
-    Ok(())
 }

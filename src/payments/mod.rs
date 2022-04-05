@@ -3,7 +3,7 @@ use super::mollie_sdk;
 use clap::{Parser, Subcommand};
 
 mod create;
-mod get_payment;
+mod get;
 
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
@@ -77,7 +77,7 @@ pub fn command(payments_command: &PaymentsCommmand) {
             );
         }
         Some(PaymentsCommands::Get { id }) => {
-            get_payment::command(id).unwrap();
+            get::command(id).unwrap();
         }
         None => {}
     }
