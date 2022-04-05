@@ -18,8 +18,9 @@ pub fn command(
     let currency = Currency(String::from(input_currency.unwrap()));
     let amount = Amount {
         currency: currency,
-        value: input_amount.unwrap().parse::<f64>().unwrap(),
+        value: format!("{:.2}", input_amount.unwrap().parse::<f64>().unwrap()),
     };
+    debug!("{:?}", amount);
     let description = Description(String::from(input_description.unwrap()));
     let redirect_url = RedirectUrl(String::from(input_redirect_url.unwrap()));
     let profile_id = Some(String::from(input_profile_id.unwrap()));
@@ -71,6 +72,7 @@ pub fn interactive(debug: &bool) {
 }
 
 #[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 struct CreatePaymentRequest {
     amount: Amount,
     description: Description,
@@ -92,6 +94,8 @@ fn execute_request(request: CreatePaymentRequest) -> Result<(), Box<dyn std::err
     debug!("Connecting with the Mollie API");
     let bearer_token = get_bearer_token_from_config().unwrap();
 
+    debug!("{:?}", &serde_json::to_string(&request).unwrap());
+
     let client = reqwest::blocking::Client::new();
     let response = client
         .post(format!("{}/v2/payments", config::api_url().unwrap()))
@@ -106,7 +110,7 @@ fn execute_request(request: CreatePaymentRequest) -> Result<(), Box<dyn std::err
                 env!("CARGO_PKG_REPOSITORY")
             ),
         )
-        .json(&serde_json::to_string(&request).unwrap())
+        .json(&request)
         .send()?;
 
     // HTTP 201 Response means the payment was created successfully
@@ -211,7 +215,7 @@ struct Currency(String);
 #[derive(Serialize, Debug)]
 struct Amount {
     currency: Currency,
-    value: f64,
+    value: String,
 }
 
 #[derive(Serialize, Debug)]
@@ -258,7 +262,7 @@ fn ask_amount(currency: Currency) -> Result<Amount, SorryCouldNotCreatePayment> 
             debug!("Input amount {} - not yet validated", answer);
             let amount = Amount {
                 currency: currency,
-                value: answer,
+                value: format!("{:.2}", answer),
             };
             debug!("Amount {:?} (not validated)", amount);
 
