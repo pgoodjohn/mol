@@ -81,16 +81,6 @@ impl ApiClient {
     }
 }
 
-impl payments::PaymentsApi for ApiClient {
-    fn get(
-        &self,
-        url: String,
-        parameter: Option<String>,
-    ) -> Result<reqwest::blocking::Response, reqwest::Error> {
-        self.get(url, parameter)
-    }
-}
-
 impl organizations::OrganizationsApi for ApiClient {
     fn get(
         &self,
