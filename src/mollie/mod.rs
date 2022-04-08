@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 pub mod errors;
 pub mod organizations;
 pub mod payments;
+pub mod permissions;
 
 pub struct ApiClient {
     base_url: String,

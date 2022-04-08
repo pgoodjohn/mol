@@ -1,50 +1,76 @@
 use super::mollie;
-use log::{debug, info};
-use reqwest::StatusCode;
-use serde::Deserialize;
+use super::mollie::permissions::Permissions;
+use log::{debug, info, warn};
+use pad::{Alignment, PadStr};
 
-pub fn command() {
-    get_permissions_from_api();
-}
-
-#[derive(Deserialize, Debug)]
-struct PermissionsResponse {
-    #[serde(rename(deserialize = "_embedded"))]
-    embedded: PermissionsResources,
-}
-
-#[derive(Deserialize, Debug)]
-struct PermissionsResources {
-    permissions: Vec<PermissionResource>,
-}
-
-#[derive(Deserialize, Debug)]
-struct PermissionResource {
-    id: String,
-    description: String,
-    granted: bool,
-}
-
-fn get_permissions_from_api() {
+pub fn command(filter_granted: &bool) {
     let client = mollie::ApiClient::new();
-    let response = client.get(String::from("v2/permissions"), None).unwrap();
 
-    // HTTP 200 Response means the request was successful
-    if response.status() == StatusCode::OK {
-        debug!("Successfull call to the Mollie API!");
-        let decoded_response = response.json::<PermissionsResponse>().unwrap();
-        debug!("{:?}", decoded_response);
+    let response = client.get_permissions();
 
-        for permission in decoded_response.embedded.permissions {
-            info!(
-                "{} - {} - Granted: {}",
-                permission.id, permission.description, permission.granted
-            )
+    match response {
+        Ok(success) => {
+            if *filter_granted {
+                list_granted_permissions(success.embedded);
+                return;
+            }
+            list_permissions(success.embedded);
         }
-
-        return;
+        Err(err) => handle_error(err),
     }
+}
 
-    // Any other response is an error
-    mollie::handle_mollie_api_error(response);
+fn list_permissions(permissions: super::mollie::permissions::PermissionsResources) {
+    for permission in permissions.permissions {
+        info!(
+            "{} | Granted: {} | {}",
+            permission
+                .id
+                .pad_to_width_with_alignment(20, Alignment::Right),
+            permission.granted as i32,
+            permission.description
+        );
+    }
+}
+
+fn list_granted_permissions(permissions: super::mollie::permissions::PermissionsResources) {
+    for permission in permissions.permissions {
+        if permission.granted {
+            info!(
+                "{} | {}",
+                permission
+                    .id
+                    .pad_to_width_with_alignment(20, Alignment::Right),
+                permission.description
+            );
+        }
+    }
+}
+
+fn handle_error(err: super::mollie::errors::ApiClientError) {
+    debug!("{:?}", err);
+    warn!("🚨 There was an error communicating with the Mollie API 🚨");
+
+    match err {
+        super::mollie::errors::ApiClientError::CouldNotPerformRequest(i) => {
+            warn!("Could not reach the Mollie API to perform the request.");
+            debug!("{:?}", i);
+        },
+        super::mollie::errors::ApiClientError::CouldNotUnderstandResponse(i) => {
+            warn!("Request failed catastrophically and could not understand the Mollie API error response.");
+            debug!("{:?}", i);
+        },
+        super::mollie::errors::ApiClientError::MollieApiReturnedAnError(i) => {
+            warn!("Request to the Mollie API Failed: {}", i.detail);
+
+            if i.status == 401 {
+                warn!("Run mol auth to set up your authentication with the Mollie API");
+                warn!("Run mol env url {{prod|dev}} to switch environments");
+            }
+        },
+        super::mollie::errors::ApiClientError::CouldNotFindValidAuthorizationMethodToPerformRequest() => {
+            warn!("Could not find an access token to authenticate this request");
+            warn!("Run mol auth -i or mol auth add --access-code {{access-code}} to be able to perform this request");
+        },
+    }
 }

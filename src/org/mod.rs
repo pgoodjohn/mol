@@ -17,13 +17,16 @@ pub struct OrgCommand {
 #[derive(Subcommand)]
 pub enum OrgCommands {
     /// Get the permissions for the currently stored access token
-    Permissions {},
+    Permissions {
+        #[clap(short, long)]
+        granted: bool,
+    },
 }
 
 pub fn command(command: &OrgCommand) {
     match command.command.as_ref() {
-        Some(OrgCommands::Permissions {}) => {
-            permissions::command();
+        Some(OrgCommands::Permissions { granted }) => {
+            permissions::command(granted);
         }
         None => {
             me::command();
