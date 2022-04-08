@@ -81,8 +81,8 @@ pub fn command(payments_command: &PaymentsCommmand) {
         }
         Some(PaymentsCommands::Get { id }) => {
             get::command(id).unwrap();
-        },
-        Some(PaymentsCommands::List{}) => {
+        }
+        Some(PaymentsCommands::List {}) => {
             list::command();
         }
         None => {}

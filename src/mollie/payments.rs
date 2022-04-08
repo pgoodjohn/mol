@@ -1,6 +1,6 @@
-use serde::Deserialize;
-use reqwest::StatusCode;
 use log::debug;
+use reqwest::StatusCode;
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct ListPaymentsResponse {
@@ -26,7 +26,7 @@ pub struct PaymentResource {
     #[serde(rename(deserialize = "authorizedAt"))]
     pub authorized_at: Option<String>,
     pub description: String,
-    pub amount: PaymentAmount
+    pub amount: PaymentAmount,
 }
 
 #[derive(Debug, Deserialize)]
@@ -39,7 +39,7 @@ pub struct PaymentAmount {
 pub enum ApiError {
     CouldNotPerformRequest(reqwest::Error),
     CouldNotUnderstandResponse(reqwest::Error),
-    MollieApiReturnedAnError(super::MollieApiError)
+    MollieApiReturnedAnError(super::MollieApiError),
 }
 
 pub trait PaymentsApi {
@@ -50,18 +50,20 @@ pub trait PaymentsApi {
     ) -> Result<reqwest::blocking::Response, reqwest::Error>;
 
     fn list_payments(&self) -> Result<ListPaymentsResponse, ApiError> {
-        let response = self.get(String::from("v2/payments"), None).map_err(ApiError::CouldNotPerformRequest)?;
+        let response = self
+            .get(String::from("v2/payments"), None)
+            .map_err(ApiError::CouldNotPerformRequest)?;
 
         if response.status() == StatusCode::OK {
-            let decoded_response = response
-            .json::<ListPaymentsResponse>()
-            .unwrap();
-                debug!("{:?}", decoded_response);
+            let decoded_response = response.json::<ListPaymentsResponse>().unwrap();
+            debug!("{:?}", decoded_response);
 
             return Ok(decoded_response);
         }
 
-        let decoded_error_response = response.json::<super::MollieApiError>().map_err(ApiError::CouldNotUnderstandResponse)?;
+        let decoded_error_response = response
+            .json::<super::MollieApiError>()
+            .map_err(ApiError::CouldNotUnderstandResponse)?;
         return Err(ApiError::MollieApiReturnedAnError(decoded_error_response));
     }
 
