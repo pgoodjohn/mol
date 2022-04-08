@@ -6,6 +6,8 @@ use reqwest::StatusCode;
 use serde::ser;
 use serde::{Deserialize, Serialize};
 
+pub mod payments;
+
 pub struct ApiClient {
     base_url: String,
     auth_token: ApiBearerToken,
@@ -76,6 +78,12 @@ impl ApiClient {
     }
 }
 
+impl payments::PaymentsApi for ApiClient {
+    fn get(&self, url: String, parameter: Option<String>) -> Result<reqwest::blocking::Response, reqwest::Error> {
+        self.get(url, parameter)
+    }
+}
+
 struct ApiBearerToken {
     value: String,
     token_type: ApiTokenTypes,
@@ -115,10 +123,10 @@ fn get_bearer_token_from_config() -> Result<ApiBearerToken, Box<dyn std::error::
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct MollieApiError {
-    status: i32,
-    title: String,
-    detail: String,
+pub struct MollieApiError {
+    pub status: i32,
+    pub title: String,
+    pub detail: String,
 }
 
 pub fn handle_mollie_api_error(response: Response) {

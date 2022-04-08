@@ -1,54 +1,51 @@
-use super::mollie_sdk;
-use serde::Deserialize;
-use log::{debug, info};
-use reqwest::StatusCode;
+use super::mollie;
+use super::mollie::payments::PaymentsApi;
+use log::{debug, info, warn};
+use pad::{PadStr, Alignment};
 
 pub fn command() {
     debug!("Listing 10 Payments");
 
-    let client = mollie_sdk::ApiClient::new();
+    let client = mollie::ApiClient::new();
 
-    let response = client.get(String::from("v2/payments"), None).unwrap();
+    let response = client.list_payments();
 
-       // HTTP 200 Response means the request was successful
-    if response.status() == StatusCode::OK {
-        debug!("Successfull call to the Mollie API!");
-        let decoded_response = response
-            .json::<ListPaymentsResponse>()
-            .unwrap();
-        debug!("{:?}", decoded_response);
-
-        info!("Found {} payments", decoded_response.count);
-
-        for payment in decoded_response.embedded.payments {
-            info!(
-                "{} - {}",
-                payment.id, payment.status
-            )
+    match response {
+        Ok(success) => {
+            list_payments_from_response(success)
+        },
+        Err(err) => {
+            handle_error(err)
         }
-
-        return;
     }
-
-    // Any other response is an error
-    mollie_sdk::handle_mollie_api_error(response);
-
 }
 
-#[derive(Debug, Deserialize)]
-struct ListPaymentsResponse {
-    count: i32,
-    #[serde(rename(deserialize = "_embedded"))]
-    embedded: PaymentResources
+pub fn list_payments_from_response(response: super::mollie::payments::ListPaymentsResponse) {
+    for payment in response.embedded.payments {
+        info!("{} | {} {} | {}", payment.id, payment.amount.value.pad_to_width_with_alignment(8, Alignment::Right), payment.amount.currency, payment.status);
+    }
 }
 
-#[derive(Debug, Deserialize)]
-struct PaymentResources {
-    payments: Vec<PaymentResource>
-}
+fn handle_error(err: super::mollie::payments::ApiError) {
+    debug!("{:?}", err);
+    warn!("🚨 There was an error communicating with the Mollie API 🚨");
 
-#[derive(Debug, Deserialize)]
-struct PaymentResource {
-    id: String,
-    status: String
+    match err {
+        super::mollie::payments::ApiError::CouldNotPerformRequest(i) => {
+            warn!("Could not reach the Mollie API to perform the request.");
+            debug!("{:?}", i);
+        },
+        super::mollie::payments::ApiError::CouldNotUnderstandResponse(i) => {
+            warn!("Request failed catastrophically and could not understand the Mollie API error response.");
+            debug!("{:?}", i);
+        },
+        super::mollie::payments::ApiError::MollieApiReturnedAnError(i) => {
+            warn!("Request to the Mollie API Failed: {}", i.detail);
+
+            if i.status == 401 {
+                warn!("Run mol auth to set up your authentication with the Mollie API");
+                warn!("Run mol env url {{prod|dev}} to switch environments");
+            }
+        },
+    }
 }

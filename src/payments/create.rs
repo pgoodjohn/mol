@@ -4,7 +4,7 @@ use requestty::Question;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
-use super::mollie_sdk;
+use super::mollie;
 
 pub fn command(
     input_currency: Option<&String>,
@@ -93,7 +93,7 @@ struct PaymentCreatedResponse {
 fn execute_request(request: CreatePaymentRequest) {
     debug!("Connecting with the Mollie API");
 
-    let client = mollie_sdk::ApiClient::new();
+    let client = mollie::ApiClient::new();
     let response = client.post(request, String::from("v2/payments")).unwrap();
 
     // HTTP 201 Response means the payment was created successfully
@@ -120,7 +120,7 @@ fn execute_request(request: CreatePaymentRequest) {
     }
 
     // Any other response is an error
-    mollie_sdk::handle_mollie_api_error(response);
+    mollie::handle_mollie_api_error(response);
 }
 
 fn ask_confirmation() {

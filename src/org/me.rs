@@ -1,4 +1,4 @@
-use super::mollie_sdk;
+use super::mollie;
 use log::{debug, info, warn};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -58,7 +58,7 @@ impl error::Error for CouldNotRetrieveOrganizationInformation {
 
 fn get_current_organization_from_api() -> Result<OrganizationsResponse, Box<dyn std::error::Error>>
 {
-    let client = mollie_sdk::ApiClient::new();
+    let client = mollie::ApiClient::new();
     let response = client
         .get(String::from("v2/organizations"), Some(String::from("me")))
         .map_err(CouldNotRetrieveOrganizationInformation::SomethingWentWrongWithTheRequest)?;
@@ -75,7 +75,7 @@ fn get_current_organization_from_api() -> Result<OrganizationsResponse, Box<dyn 
     }
 
     // Any other response is an error
-    mollie_sdk::handle_mollie_api_error(response);
+    mollie::handle_mollie_api_error(response);
 
     return Err(
         CouldNotRetrieveOrganizationInformation::SomethingWentWrongFetchingOrganizationDetails()

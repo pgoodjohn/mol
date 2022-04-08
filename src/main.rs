@@ -4,7 +4,7 @@ mod auth;
 mod config;
 mod env;
 mod logger;
-mod mollie_sdk;
+mod mollie;
 mod org;
 mod payments;
 

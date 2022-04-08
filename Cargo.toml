@@ -21,3 +21,4 @@ toml = "0.5"
 strum = { version = "0.24", features = ["derive"] }
 regex = "1"
 dirs = "4.0.0"
+pad = "0.1.6"

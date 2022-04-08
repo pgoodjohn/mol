@@ -1,4 +1,4 @@
-use super::mollie_sdk;
+use super::mollie;
 use clap::{Parser, Subcommand};
 
 mod me;

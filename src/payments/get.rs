@@ -1,5 +1,5 @@
 use super::config;
-use super::mollie_sdk;
+use super::mollie;
 use log::{debug, info};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -25,7 +25,7 @@ struct PaymentResponse {
 fn get_payment_from_api(payment_id: &String) {
     debug!("Making HTTP Request");
 
-    let mollie_client = mollie_sdk::ApiClient::new();
+    let mollie_client = mollie::ApiClient::new();
     let response = mollie_client
         .get(String::from("v2/payments"), Some(String::from(payment_id)))
         .unwrap();
@@ -51,5 +51,5 @@ fn get_payment_from_api(payment_id: &String) {
     }
 
     // Any other response is an error
-    mollie_sdk::handle_mollie_api_error(response);
+    mollie::handle_mollie_api_error(response);
 }

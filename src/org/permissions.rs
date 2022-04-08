@@ -1,4 +1,4 @@
-use super::mollie_sdk;
+use super::mollie;
 use log::{debug, info};
 use reqwest::StatusCode;
 use serde::Deserialize;
@@ -26,7 +26,7 @@ struct PermissionResource {
 }
 
 fn get_permissions_from_api() {
-    let client = mollie_sdk::ApiClient::new();
+    let client = mollie::ApiClient::new();
     let response = client.get(String::from("v2/permissions"), None).unwrap();
 
     // HTTP 200 Response means the request was successful
@@ -46,5 +46,5 @@ fn get_permissions_from_api() {
     }
 
     // Any other response is an error
-    mollie_sdk::handle_mollie_api_error(response);
+    mollie::handle_mollie_api_error(response);
 }
