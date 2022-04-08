@@ -6,6 +6,8 @@ use reqwest::StatusCode;
 use serde::ser;
 use serde::{Deserialize, Serialize};
 
+pub mod errors;
+pub mod organizations;
 pub mod payments;
 
 pub struct ApiClient {
@@ -79,17 +81,35 @@ impl ApiClient {
 }
 
 impl payments::PaymentsApi for ApiClient {
-    fn get(&self, url: String, parameter: Option<String>) -> Result<reqwest::blocking::Response, reqwest::Error> {
+    fn get(
+        &self,
+        url: String,
+        parameter: Option<String>,
+    ) -> Result<reqwest::blocking::Response, reqwest::Error> {
         self.get(url, parameter)
     }
 }
 
-struct ApiBearerToken {
+impl organizations::OrganizationsApi for ApiClient {
+    fn get(
+        &self,
+        url: String,
+        parameter: Option<String>,
+    ) -> Result<reqwest::blocking::Response, reqwest::Error> {
+        self.get(url, parameter)
+    }
+    fn get_authentication_method(&self) -> ApiBearerToken {
+        get_bearer_token_from_config().unwrap()
+    }
+}
+
+#[derive(Debug)]
+pub struct ApiBearerToken {
     value: String,
     token_type: ApiTokenTypes,
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum ApiTokenTypes {
     ApiKey,
     AccessCode,

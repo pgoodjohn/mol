@@ -20,7 +20,7 @@ pub fn command() {
     }
 }
 
-pub fn list_payments_from_response(response: super::mollie::payments::ListPaymentsResponse) {
+fn list_payments_from_response(response: super::mollie::payments::ListPaymentsResponse) {
     for payment in response.embedded.payments {
         info!("{} | {} {} | {}", payment.id, payment.amount.value.pad_to_width_with_alignment(8, Alignment::Right), payment.amount.currency, payment.status);
     }
