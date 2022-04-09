@@ -1,3 +1,4 @@
+use super::console;
 use super::mollie;
 use clap::{Parser, Subcommand};
 

@@ -67,13 +67,6 @@ pub struct Amount {
     pub currency: String,
 }
 
-#[derive(Debug)]
-pub enum ApiError {
-    CouldNotPerformRequest(reqwest::Error),
-    CouldNotUnderstandResponse(reqwest::Error),
-    MollieApiReturnedAnError(super::MollieApiError),
-}
-
 impl PaymentsApi for super::ApiClient {
     fn get(
         &self,
@@ -91,13 +84,15 @@ pub trait PaymentsApi {
         parameter: Option<String>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error>;
 
-    fn list_payments(&self) -> Result<ListPaymentsResponse, ApiError> {
+    fn list_payments(&self) -> Result<ListPaymentsResponse, super::errors::ApiClientError> {
         let response = self
             .get(String::from("v2/payments"), None)
-            .map_err(ApiError::CouldNotPerformRequest)?;
+            .map_err(super::errors::ApiClientError::CouldNotPerformRequest)?;
 
         if response.status() == StatusCode::OK {
-            let decoded_response = response.json::<ListPaymentsResponse>().unwrap();
+            let decoded_response = response
+                .json::<ListPaymentsResponse>()
+                .map_err(super::errors::ApiClientError::CouldNotUnderstandResponse)?;
             debug!("{:?}", decoded_response);
 
             return Ok(decoded_response);
@@ -105,17 +100,24 @@ pub trait PaymentsApi {
 
         let decoded_error_response = response
             .json::<super::MollieApiError>()
-            .map_err(ApiError::CouldNotUnderstandResponse)?;
-        return Err(ApiError::MollieApiReturnedAnError(decoded_error_response));
+            .map_err(super::errors::ApiClientError::CouldNotUnderstandResponse)?;
+        return Err(super::errors::ApiClientError::MollieApiReturnedAnError(
+            decoded_error_response,
+        ));
     }
 
-    fn get_payment_details(&self, payment_id: &String) -> Result<PaymentResource, ApiError> {
+    fn get_payment_details(
+        &self,
+        payment_id: &String,
+    ) -> Result<PaymentResource, super::errors::ApiClientError> {
         let response = self
             .get(String::from("v2/payments"), Some(String::from(payment_id)))
-            .unwrap();
+            .map_err(super::errors::ApiClientError::CouldNotPerformRequest)?;
 
         if response.status() == StatusCode::OK {
-            let decoded_response = response.json::<PaymentResource>().unwrap();
+            let decoded_response = response
+                .json::<PaymentResource>()
+                .map_err(super::errors::ApiClientError::CouldNotUnderstandResponse)?;
             debug!("{:?}", decoded_response);
 
             return Ok(decoded_response);
@@ -123,7 +125,9 @@ pub trait PaymentsApi {
 
         let decoded_error_response = response
             .json::<super::MollieApiError>()
-            .map_err(ApiError::CouldNotUnderstandResponse)?;
-        return Err(ApiError::MollieApiReturnedAnError(decoded_error_response));
+            .map_err(super::errors::ApiClientError::CouldNotUnderstandResponse)?;
+        return Err(super::errors::ApiClientError::MollieApiReturnedAnError(
+            decoded_error_response,
+        ));
     }
 }

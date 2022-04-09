@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use log::debug;
 mod auth;
 mod config;
+mod console;
 mod env;
 mod logger;
 mod mollie;
