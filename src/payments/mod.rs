@@ -6,6 +6,7 @@ use clap::{Parser, Subcommand};
 mod create;
 mod get;
 mod list;
+mod refund;
 
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
@@ -55,6 +56,18 @@ pub enum PaymentsCommands {
         #[clap(short, long)]
         from: Option<String>,
     },
+    /// Refund a payment
+    #[clap(arg_required_else_help(true))]
+    Refund {
+        #[clap(parse(try_from_str))]
+        id: String,
+
+        #[clap(long)]
+        amount: f32,
+
+        #[clap(long)]
+        description: String,
+    },
 }
 
 pub fn command(payments_command: &PaymentsCommmand) {
@@ -90,6 +103,13 @@ pub fn command(payments_command: &PaymentsCommmand) {
         }
         Some(PaymentsCommands::List { limit, from }) => {
             list::command(limit, from);
+        }
+        Some(PaymentsCommands::Refund {
+            id,
+            amount,
+            description,
+        }) => {
+            refund::command(id, amount, description);
         }
         None => {}
     }

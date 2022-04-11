@@ -9,6 +9,7 @@ pub mod errors;
 pub mod organizations;
 pub mod payments;
 pub mod permissions;
+pub mod refunds;
 
 pub struct ApiClient {
     base_url: String,
