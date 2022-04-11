@@ -3,6 +3,7 @@ use log::debug;
 use reqwest::blocking::Client;
 use serde::ser;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 pub mod errors;
 pub mod organizations;
@@ -59,6 +60,7 @@ impl ApiClient {
         &self,
         url: String,
         parameter: Option<String>,
+        query: Option<HashMap<&str, String>>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error> {
         let full_url: String;
 
@@ -67,7 +69,7 @@ impl ApiClient {
             None => full_url = format!("{}/{}", &self.base_url, url),
         }
 
-        let response = self
+        let mut request = self
             .client
             .get(full_url)
             .bearer_auth(&self.auth_token.value)
@@ -79,8 +81,16 @@ impl ApiClient {
                     env!("CARGO_PKG_VERSION"),
                     env!("CARGO_PKG_REPOSITORY")
                 ),
-            )
-            .send()?;
+            );
+
+        match query {
+            Some(query) => {
+                request = request.query(&query);
+            }
+            None => {}
+        }
+
+        let response = request.send()?;
 
         Ok(response)
     }
@@ -91,8 +101,9 @@ impl organizations::OrganizationsApi for ApiClient {
         &self,
         url: String,
         parameter: Option<String>,
+        query: Option<HashMap<&str, String>>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error> {
-        self.get(url, parameter)
+        self.get(url, parameter, query)
     }
     fn get_authentication_method(&self) -> ApiBearerToken {
         get_bearer_token_from_config().unwrap()

@@ -49,7 +49,12 @@ pub enum PaymentsCommands {
         id: String,
     },
     /// List payments
-    List {},
+    List {
+        #[clap(short, long)]
+        limit: Option<i32>,
+        #[clap(short, long)]
+        from: Option<String>,
+    },
 }
 
 pub fn command(payments_command: &PaymentsCommmand) {
@@ -83,8 +88,8 @@ pub fn command(payments_command: &PaymentsCommmand) {
         Some(PaymentsCommands::Get { id }) => {
             get::command(id);
         }
-        Some(PaymentsCommands::List {}) => {
-            list::command();
+        Some(PaymentsCommands::List { limit, from }) => {
+            list::command(limit, from);
         }
         None => {}
     }

@@ -8,6 +8,8 @@ pub struct ListPaymentsResponse {
     pub count: i32,
     #[serde(rename(deserialize = "_embedded"))]
     pub embedded: PaymentResources,
+    // #[serde(rename(deserialize = "_links"))]
+    // pub links: Option<HashMap<String, super::Link>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -67,8 +69,9 @@ impl PaymentsApi for super::ApiClient {
         &self,
         url: String,
         parameter: Option<String>,
+        query: Option<HashMap<&str, String>>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error> {
-        self.get(url, parameter)
+        self.get(url, parameter, query)
     }
 
     fn post<T: ser::Serialize>(
@@ -85,6 +88,7 @@ pub trait PaymentsApi {
         &self,
         url: String,
         parameter: Option<String>,
+        query: Option<HashMap<&str, String>>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error>;
 
     fn post<T: ser::Serialize>(
@@ -93,9 +97,29 @@ pub trait PaymentsApi {
         url: String,
     ) -> Result<reqwest::blocking::Response, reqwest::Error>;
 
-    fn list_payments(&self) -> Result<ListPaymentsResponse, super::errors::ApiClientError> {
+    fn list_payments(
+        &self,
+        limit: Option<i32>,
+        from: &Option<String>,
+    ) -> Result<ListPaymentsResponse, super::errors::ApiClientError> {
+        let mut query_params: std::collections::HashMap<&str, String> = HashMap::new();
+
+        match limit {
+            Some(limit) => {
+                query_params.insert("limit", String::from(limit.to_string()));
+            }
+            None => {}
+        }
+
+        match from {
+            Some(from) => {
+                query_params.insert("from", String::from(from));
+            }
+            None => {}
+        }
+
         let response = self
-            .get(String::from("v2/payments"), None)
+            .get(String::from("v2/payments"), None, Some(query_params))
             .map_err(super::errors::ApiClientError::CouldNotPerformRequest)?;
 
         if response.status() == StatusCode::OK {
@@ -120,7 +144,11 @@ pub trait PaymentsApi {
         payment_id: &String,
     ) -> Result<PaymentResource, super::errors::ApiClientError> {
         let response = self
-            .get(String::from("v2/payments"), Some(String::from(payment_id)))
+            .get(
+                String::from("v2/payments"),
+                Some(String::from(payment_id)),
+                None,
+            )
             .map_err(super::errors::ApiClientError::CouldNotPerformRequest)?;
 
         if response.status() == StatusCode::OK {

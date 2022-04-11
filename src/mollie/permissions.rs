@@ -1,6 +1,7 @@
 use log::debug;
 use reqwest::StatusCode;
 use serde::Deserialize;
+use std::collections::HashMap;
 
 #[derive(Deserialize, Debug)]
 pub struct PermissionsResponse {
@@ -25,6 +26,7 @@ pub trait Permissions {
         &self,
         url: String,
         parameter: Option<String>,
+        query: Option<HashMap<&str, String>>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error>;
 
     fn get_authentication_method(&self) -> super::ApiBearerToken;
@@ -40,7 +42,7 @@ pub trait Permissions {
         }
 
         let response = self
-            .get(String::from("v2/permissions"), None)
+            .get(String::from("v2/permissions"), None, None)
             .map_err(super::errors::ApiClientError::CouldNotPerformRequest)?;
 
         if response.status() == StatusCode::OK {
@@ -66,8 +68,9 @@ impl Permissions for super::ApiClient {
         &self,
         url: String,
         parameter: Option<String>,
+        query: Option<HashMap<&str, String>>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error> {
-        self.get(url, parameter)
+        self.get(url, parameter, query)
     }
     fn get_authentication_method(&self) -> super::ApiBearerToken {
         super::get_bearer_token_from_config().unwrap()

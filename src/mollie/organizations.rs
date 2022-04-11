@@ -1,6 +1,7 @@
 use log::debug;
 use reqwest::StatusCode;
 use serde::Deserialize;
+use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
 pub struct OrganizationResource {
@@ -20,6 +21,7 @@ pub trait OrganizationsApi {
         &self,
         url: String,
         parameter: Option<String>,
+        query: Option<HashMap<&str, String>>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error>;
 
     fn get_authentication_method(&self) -> super::ApiBearerToken;
@@ -37,7 +39,7 @@ pub trait OrganizationsApi {
         }
 
         let response = self
-            .get(String::from("v2/organizations/me"), None)
+            .get(String::from("v2/organizations/me"), None, None)
             .map_err(super::errors::ApiClientError::CouldNotPerformRequest)?;
 
         if response.status() == StatusCode::OK {
