@@ -1,7 +1,7 @@
 use super::console;
 use super::mollie;
 use super::mollie::payments::PaymentsApi;
-use log::{debug, info, warn};
+use log::{debug, info};
 use pad::{Alignment, PadStr};
 
 pub fn command() {

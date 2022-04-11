@@ -1,7 +1,7 @@
 use super::console;
 use super::mollie;
 use super::mollie::organizations::OrganizationsApi;
-use log::{debug, info, warn};
+use log::info;
 
 pub fn command() {
     let client = mollie::ApiClient::new();

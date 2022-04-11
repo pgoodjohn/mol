@@ -1,8 +1,6 @@
 use super::config;
-use log::{debug, warn};
+use log::debug;
 use reqwest::blocking::Client;
-use reqwest::blocking::Response;
-use reqwest::StatusCode;
 use serde::ser;
 use serde::{Deserialize, Serialize};
 
@@ -15,6 +13,13 @@ pub struct ApiClient {
     base_url: String,
     auth_token: ApiBearerToken,
     client: Client,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Link {
+    #[allow(dead_code)]
+    r#type: String,
+    pub href: String,
 }
 
 impl ApiClient {
@@ -138,34 +143,4 @@ pub struct MollieApiError {
     pub status: i32,
     pub title: String,
     pub detail: String,
-}
-
-pub fn handle_mollie_api_error(response: Response) {
-    if response.status() == StatusCode::UNAUTHORIZED {
-        warn!("Request to the Mollie API failed, could not authorize your request");
-        warn!("Please check that your API key is configured correctly");
-        warn!("Run mol auth add to add a new API key");
-        return;
-    }
-
-    if response.status() == StatusCode::UNPROCESSABLE_ENTITY {
-        let decoded_response = response.json::<MollieApiError>().unwrap();
-        warn!("Request to the Mollie API failed, something was wrong with the request!");
-        warn!(
-            "The Mollie API returned the following error: {}",
-            decoded_response.detail
-        );
-        return;
-    }
-
-    if response.status().as_u16() >= 500 {
-        warn!("Request to the Mollie API Failed: the Mollie API appears to be unreachable.");
-        debug!("Response: {:?}", response);
-        return;
-    }
-
-    warn!("Request to the Mollie API failed in a spectacular and unexpected way.");
-    warn!("Response status code was: {}", response.status());
-    warn!("Run the command with the -d flag to get more details on the response");
-    debug!("Response: {:?}", response);
 }

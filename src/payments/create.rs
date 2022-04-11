@@ -1,10 +1,10 @@
 use super::config;
-use log::{debug, info};
-use requestty::Question;
-use reqwest::StatusCode;
-use serde::{Deserialize, Serialize};
-
+use super::console;
 use super::mollie;
+use super::mollie::payments::PaymentsApi;
+use log::{debug, info, warn};
+use requestty::Question;
+use serde::Serialize;
 
 pub fn command(
     input_currency: Option<&String>,
@@ -15,20 +15,18 @@ pub fn command(
     debug: &bool,
 ) {
     debug!("Running Create Payment Command");
-    let currency = Currency(String::from(input_currency.unwrap()));
-    let amount = Amount {
-        currency: currency,
-        value: format!("{:.2}", input_amount.unwrap().parse::<f64>().unwrap()),
-    };
-    debug!("{:?}", amount);
-    let description = Description(String::from(input_description.unwrap()));
-    let redirect_url = RedirectUrl(String::from(input_redirect_url.unwrap()));
+    let currency = String::from(input_currency.unwrap());
+    let description = String::from(input_description.unwrap());
+    let redirect_url = String::from(input_redirect_url.unwrap());
     let profile_id = Some(String::from(input_profile_id.unwrap()));
 
-    let create_payment_request = CreatePaymentRequest {
-        amount,
-        description,
-        redirect_url,
+    let create_payment_request = super::mollie::payments::CreatePaymentRequest {
+        amount: super::mollie::payments::Amount {
+            value: format!("{:.2}", input_amount.unwrap().parse::<f64>().unwrap()),
+            currency: currency,
+        },
+        description: description,
+        redirect_url: redirect_url,
         profile_id,
     };
 
@@ -38,7 +36,12 @@ pub fn command(
         ask_confirmation();
     }
 
-    execute_request(create_payment_request);
+    let client = mollie::ApiClient::new();
+
+    match client.create_payment(create_payment_request) {
+        Ok(response) => handle_payment_created_response(response),
+        Err(e) => console::handle_mollie_client_error(e),
+    }
 }
 
 pub fn interactive(debug: &bool) {
@@ -55,10 +58,13 @@ pub fn interactive(debug: &bool) {
     // Webhook (Optional fields [...])
     // Profile ID - prompted only if auth is via access code
     let profile_id = ask_profile_id().unwrap();
-    let create_payment_request = CreatePaymentRequest {
-        amount,
-        description,
-        redirect_url,
+    let create_payment_request = super::mollie::payments::CreatePaymentRequest {
+        amount: super::mollie::payments::Amount {
+            currency: amount.currency,
+            value: amount.value,
+        },
+        description: description,
+        redirect_url: redirect_url,
         profile_id,
     };
 
@@ -68,59 +74,19 @@ pub fn interactive(debug: &bool) {
         ask_confirmation();
     }
 
-    execute_request(create_payment_request);
-}
-
-#[derive(Serialize, Debug)]
-#[serde(rename_all = "camelCase")]
-struct CreatePaymentRequest {
-    amount: Amount,
-    description: Description,
-    redirect_url: RedirectUrl,
-    profile_id: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct PaymentCreatedResponse {
-    resource: String,
-    id: String,
-    description: String,
-    method: Option<String>,
-    status: String,
-    mode: String,
-}
-
-fn execute_request(request: CreatePaymentRequest) {
-    debug!("Connecting with the Mollie API");
-
     let client = mollie::ApiClient::new();
-    let response = client.post(request, String::from("v2/payments")).unwrap();
 
-    // HTTP 201 Response means the payment was created successfully
-    if response.status() == StatusCode::CREATED {
-        debug!("Successfull call to the Mollie API!");
-        let decoded_response = response.json::<PaymentCreatedResponse>().unwrap();
-        debug!("{:?}", decoded_response);
-
-        // This should just check if there's a checkout URL on the response and then just print it
-        match decoded_response.method {
-            Some(_) => info!(
-                "I still don't support going to the method URL directly, but the payment ID is: {}",
-                decoded_response.id
-            ),
-            None => info!(
-                // This shouldn't be api.mollie.xxx but just mollie.xxx
-                "Pay this payment: {}/checkout/select-method/{}",
-                config::api_url().unwrap(),
-                decoded_response.id
-            ),
-        }
-
-        return;
+    match client.create_payment(create_payment_request) {
+        Ok(response) => handle_payment_created_response(response),
+        Err(e) => console::handle_mollie_client_error(e),
     }
+}
 
-    // Any other response is an error
-    mollie::handle_mollie_api_error(response);
+fn handle_payment_created_response(response: super::mollie::payments::PaymentResource) {
+    match response.links.get("checkout") {
+        Some(checkout_url) => info!("Pay this payment: {}", checkout_url.href),
+        None => warn!("Couldn't find the checkout url!"),
+    }
 }
 
 fn ask_confirmation() {
@@ -154,24 +120,15 @@ fn ask_confirmation() {
 }
 
 #[derive(Serialize, Debug)]
-struct Currency(String);
-
-#[derive(Serialize, Debug)]
 struct Amount {
-    currency: Currency,
+    currency: String,
     value: String,
 }
-
-#[derive(Serialize, Debug)]
-struct Description(String);
-
-#[derive(Serialize, Debug)]
-struct RedirectUrl(String);
 
 #[derive(Debug)]
 struct SorryCouldNotCreatePayment {}
 
-fn ask_currency() -> Result<Currency, SorryCouldNotCreatePayment> {
+fn ask_currency() -> Result<String, SorryCouldNotCreatePayment> {
     let question = Question::input("currency")
         .message("Currency (3 letter code)")
         .default("EUR")
@@ -186,13 +143,13 @@ fn ask_currency() -> Result<Currency, SorryCouldNotCreatePayment> {
             debug!("Selected currency {} - not yet validated", answer);
 
             // TODO: add validation
-            Ok(Currency(String::from(answer)))
+            Ok(String::from(answer))
         }
         Err(_) => Err(SorryCouldNotCreatePayment {}),
     }
 }
 
-fn ask_amount(currency: Currency) -> Result<Amount, SorryCouldNotCreatePayment> {
+fn ask_amount(currency: String) -> Result<Amount, SorryCouldNotCreatePayment> {
     let question = Question::float("amount")
         .message("Amount (format depends on your desired currency")
         .default(1.00)
@@ -217,7 +174,7 @@ fn ask_amount(currency: Currency) -> Result<Amount, SorryCouldNotCreatePayment> 
     }
 }
 
-fn ask_description() -> Result<Description, SorryCouldNotCreatePayment> {
+fn ask_description() -> Result<String, SorryCouldNotCreatePayment> {
     let question = Question::input("description")
         .message("Choose a description")
         .default("N/A")
@@ -232,13 +189,13 @@ fn ask_description() -> Result<Description, SorryCouldNotCreatePayment> {
             debug!("Description: {} - not yet validated", answer);
 
             // TODO: add validation
-            Ok(Description(String::from(answer)))
+            Ok(String::from(answer))
         }
         Err(_) => Err(SorryCouldNotCreatePayment {}),
     }
 }
 
-fn ask_redirect_url() -> Result<RedirectUrl, SorryCouldNotCreatePayment> {
+fn ask_redirect_url() -> Result<String, SorryCouldNotCreatePayment> {
     let question = Question::input("redirect_url")
         .message("Choose a redirect_url")
         .default("https://example.com/?source=mol-cli")
@@ -253,7 +210,7 @@ fn ask_redirect_url() -> Result<RedirectUrl, SorryCouldNotCreatePayment> {
             debug!("Redirect URL: {} - not yet validated", answer);
 
             // TODO: add validation
-            Ok(RedirectUrl(String::from(answer)))
+            Ok(String::from(answer))
         }
         Err(_) => Err(SorryCouldNotCreatePayment {}),
     }
