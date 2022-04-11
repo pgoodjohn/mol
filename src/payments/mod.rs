@@ -45,7 +45,7 @@ pub enum PaymentsCommands {
     /// Get a payment's info
     #[clap(arg_required_else_help(true))]
     Get {
-        #[clap(short, long)]
+        #[clap(parse(try_from_str))]
         id: String,
     },
     /// List payments
