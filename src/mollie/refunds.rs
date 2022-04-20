@@ -18,7 +18,7 @@ pub struct RefundPaymentRequest {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RefundResource {
-    id: String,
+    pub id: String,
     amount: Amount,
     status: String,
     created_at: String,

@@ -4,7 +4,11 @@ use super::mollie::organizations::OrganizationsApi;
 use log::info;
 
 pub fn command() {
-    let client = mollie::ApiClient::new();
+    let client = mollie::ApiClientBuilder::new()
+        .blocking()
+        .url(super::config::api_url().unwrap())
+        .auth(super::config::get_bearer_token().unwrap())
+        .spawn();
 
     let response = client.get_current_organization();
 

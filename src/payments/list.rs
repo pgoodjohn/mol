@@ -7,7 +7,11 @@ use pad::{Alignment, PadStr};
 pub fn command(limit: &Option<i32>, from: &Option<String>) {
     debug!("Listing 10 Payments");
 
-    let client = mollie::ApiClient::new();
+    let client = mollie::ApiClientBuilder::new()
+        .blocking()
+        .url(super::config::api_url().unwrap())
+        .auth(super::config::get_bearer_token().unwrap())
+        .spawn();
 
     let response = client.list_payments(*limit, from);
 

@@ -36,7 +36,11 @@ pub fn command(
         ask_confirmation();
     }
 
-    let client = mollie::ApiClient::new();
+    let client = mollie::ApiClientBuilder::new()
+        .blocking()
+        .url(super::config::api_url().unwrap())
+        .auth(super::config::get_bearer_token().unwrap())
+        .spawn();
 
     match client.create_payment(create_payment_request) {
         Ok(response) => handle_payment_created_response(response),
@@ -74,7 +78,11 @@ pub fn interactive(debug: &bool) {
         ask_confirmation();
     }
 
-    let client = mollie::ApiClient::new();
+    let client = mollie::ApiClientBuilder::new()
+        .blocking()
+        .url(super::config::api_url().unwrap())
+        .auth(super::config::get_bearer_token().unwrap())
+        .spawn();
 
     match client.create_payment(create_payment_request) {
         Ok(response) => handle_payment_created_response(response),

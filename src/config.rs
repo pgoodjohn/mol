@@ -6,6 +6,7 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 extern crate dirs;
+use super::mollie;
 use toml;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -146,4 +147,31 @@ fn config_path() -> PathBuf {
     }
 
     config_path
+}
+
+pub fn get_bearer_token() -> Result<mollie::ApiBearerToken, Box<dyn std::error::Error>> {
+    match access_code() {
+        Ok(access_code) => {
+            return Ok(mollie::ApiBearerToken {
+                value: access_code.to_string(),
+                token_type: mollie::ApiTokenTypes::AccessCode,
+            });
+        }
+        Err(_) => {
+            debug!("No access code set, trying to see if an API key is set instead")
+        }
+    }
+
+    match api_key() {
+        Ok(live_api_key) => {
+            return Ok(mollie::ApiBearerToken {
+                value: live_api_key.to_string(),
+                token_type: mollie::ApiTokenTypes::ApiKey,
+            });
+        }
+        Err(_) => {
+            // TODO: Handle this error better - probably check it also before doing all the prompts
+            panic!("No auth set!!!")
+        }
+    }
 }
