@@ -36,3 +36,79 @@ fi
 
 ### Update
 To update to a newerversion of `mol`, simply run `make release` again. This will rebuild the binary with the latest code in your local repository and move it to `~/.mol/bin/mol`.
+
+## Usage
+
+After running `make release` and reloading your shell you can start using `mol` right away:
+
+```
+$ mol
+
+mol-cli 0.1.0
+A Command Line Interface for the Mollie API
+
+USAGE:
+    mol [OPTIONS] [SUBCOMMAND]
+
+OPTIONS:
+    -d, --debug
+    -h, --help       Print help information
+    -V, --version    Print version information
+
+SUBCOMMANDS:
+    auth        Do Auth things
+    help        Print this message or the help of the given subcommand(s)
+    org         Do Organizationy things
+    payments    Do things with Payments
+```
+
+Every command will print the above help menu if not enough argument are provided (or if it is run with the `--help` flag).
+
+### Authenticate
+
+To interact with the Mollie API, you will need to register an API Key. You can either generate an "Organization Access Code" or get your "Live" or "Test" API keys from the [Mollie Dashboard](https://my.mollie.com/dashboard/developers/api-keys). 
+
+Once you obtained one, you can register it with `mol` by running:
+
+```
+$ mol auth add --api-key {live_123134123} # Live API Key
+$ mol auth add --api-key {test_123134123} # Test API Key
+$ mol auth add --access-code {access_1231231123} # Organization Access Token
+```
+
+To verify you are authenticated correctly, you can get your organization details with:
+
+```
+$ mol auth get
+```
+
+And you can verify the permissions of your token with:
+
+```
+$ mol auth get permissions
+```
+
+### Payments
+
+`mol` can help you check, create and refund payments through the Mollie API. You can do so with the `mol payments` command:
+
+```
+$ mol payments
+mol-payments 0.1.0
+Do things with Payments
+
+USAGE:
+    mol payments [OPTIONS] [SUBCOMMAND]
+
+OPTIONS:
+    -d, --debug
+    -h, --help       Print help information
+    -V, --version    Print version information
+
+SUBCOMMANDS:
+    create    Create a new payment
+    get       Get a payment's info
+    help      Print this message or the help of the given subcommand(s)
+    list      List payments
+    refund    Refund a payment
+```
