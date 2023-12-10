@@ -24,7 +24,7 @@ pub enum EnvCommands {
     },
 }
 
-#[derive(EnumString, Debug)]
+#[derive(EnumString, Debug, Clone)]
 pub enum Environments {
     #[strum(ascii_case_insensitive)]
     Prod,
@@ -35,7 +35,7 @@ pub enum Environments {
 pub fn command(command: &EnvCommand) {
     match command.command.as_ref() {
         Some(EnvCommands::Url { environment }) => {
-            update_environment::set_environment(&environment);
+            update_environment::set_environment(environment);
         }
         None => {
             info!(

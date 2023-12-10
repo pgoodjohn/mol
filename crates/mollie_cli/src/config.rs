@@ -7,7 +7,6 @@ use std::io;
 use std::path::PathBuf;
 extern crate dirs;
 use super::mollie;
-use toml;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
@@ -163,12 +162,10 @@ pub fn get_bearer_token() -> Result<mollie::ApiBearerToken, Box<dyn std::error::
     }
 
     match api_key() {
-        Ok(live_api_key) => {
-            return Ok(mollie::ApiBearerToken {
-                value: live_api_key.to_string(),
-                token_type: mollie::ApiTokenTypes::ApiKey,
-            });
-        }
+        Ok(live_api_key) => Ok(mollie::ApiBearerToken {
+            value: live_api_key.to_string(),
+            token_type: mollie::ApiTokenTypes::ApiKey,
+        }),
         Err(_) => {
             // TODO: Handle this error better - probably check it also before doing all the prompts
             panic!("No auth set!!!")

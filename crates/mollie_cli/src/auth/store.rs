@@ -85,7 +85,7 @@ impl ApiKey {
     pub fn from_string(value: String) -> Self {
         let api_key_format = Regex::new(r"^(test|live)_{1}\w{30}$").unwrap();
 
-        if api_key_format.is_match(&value) == false {
+        if !api_key_format.is_match(&value) {
             panic!("Invalid Api Key format");
         }
 
@@ -104,7 +104,7 @@ impl AccessCode {
     pub fn from_string(value: String) -> Self {
         let access_code_format = Regex::new(r"^(access)_{1}\w{40}$").unwrap();
 
-        if access_code_format.is_match(&value) == false {
+        if !access_code_format.is_match(&value) {
             panic!("Invalid Access Code format");
         }
 

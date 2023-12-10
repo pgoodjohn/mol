@@ -15,8 +15,10 @@ pub struct RefundPaymentRequest {
     pub description: String,
 }
 
+// TODO: remove dead_code
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
 pub struct RefundResource {
     pub id: String,
     amount: Amount,
@@ -83,8 +85,9 @@ pub trait RefundsApi {
         let decoded_error_response = response
             .json::<super::MollieApiError>()
             .map_err(super::errors::ApiClientError::CouldNotUnderstandResponse)?;
-        return Err(super::errors::ApiClientError::MollieApiReturnedAnError(
+
+        Err(super::errors::ApiClientError::MollieApiReturnedAnError(
             decoded_error_response,
-        ));
+        ))
     }
 }

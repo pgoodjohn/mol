@@ -39,27 +39,17 @@ pub fn command(command: &AuthCommand) {
             api_key,
             access_code,
         }) => {
-            match interactive {
-                true => {
-                    store::interactive();
-                    return;
-                }
-                false => {}
-            };
+            if *interactive {
+                store::interactive()
+            }
 
             match api_key {
-                Some(api_key) => {
-                    store::api_key(&api_key);
-                    return;
-                }
+                Some(api_key) => store::api_key(api_key),
                 None => {}
             }
 
             match access_code {
-                Some(access_code) => {
-                    store::access_code(&access_code);
-                    return;
-                }
+                Some(access_code) => store::access_code(access_code),
                 None => {}
             }
         }

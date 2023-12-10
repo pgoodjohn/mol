@@ -45,10 +45,7 @@ pub enum PaymentsCommands {
     },
     /// Get a payment's info
     #[clap(arg_required_else_help(true))]
-    Get {
-        #[clap(parse(try_from_str))]
-        id: String,
-    },
+    Get { id: String },
     /// List payments
     List {
         #[clap(short, long)]
@@ -59,7 +56,6 @@ pub enum PaymentsCommands {
     /// Refund a payment
     #[clap(arg_required_else_help(true))]
     Refund {
-        #[clap(parse(try_from_str))]
         id: String,
 
         #[clap(long)]

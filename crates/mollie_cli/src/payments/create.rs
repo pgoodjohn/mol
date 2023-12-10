@@ -23,10 +23,10 @@ pub fn command(
     let create_payment_request = super::mollie::payments::CreatePaymentRequest {
         amount: super::mollie::payments::Amount {
             value: format!("{:.2}", input_amount.unwrap().parse::<f64>().unwrap()),
-            currency: currency,
+            currency,
         },
-        description: description,
-        redirect_url: redirect_url,
+        description,
+        redirect_url,
         profile_id,
     };
 
@@ -67,8 +67,8 @@ pub fn interactive(debug: &bool) {
             currency: amount.currency,
             value: amount.value,
         },
-        description: description,
-        redirect_url: redirect_url,
+        description,
+        redirect_url,
         profile_id,
     };
 
@@ -110,16 +110,12 @@ fn ask_confirmation() {
             let answer = result.as_bool().unwrap();
 
             match answer {
-                true => {
-                    debug!("Ok - continuing")
-                }
+                true => debug!("Ok - continuing"),
                 false => {
                     debug!("oh oh");
                     panic!("aborting")
                 }
             }
-
-            return;
         }
         Err(_) => {
             panic!("Smth went wrong :O")
@@ -170,7 +166,7 @@ fn ask_amount(currency: String) -> Result<Amount, SorryCouldNotCreatePayment> {
             let answer = result.as_float().unwrap();
             debug!("Input amount {} - not yet validated", answer);
             let amount = Amount {
-                currency: currency,
+                currency,
                 value: format!("{:.2}", answer),
             };
             debug!("Amount {:?} (not validated)", amount);
