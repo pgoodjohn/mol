@@ -1,8 +1,7 @@
 use super::config;
 use log::{debug, info};
-use regex::Regex;
+use mollie_api::auth::{AccessCode, ApiKey, ApiKeyMode};
 use requestty::Question;
-use strum::EnumString;
 
 pub fn interactive() {
     let new_api_key = ask_api_key().unwrap();
@@ -12,13 +11,16 @@ pub fn interactive() {
 }
 
 pub fn api_key(api_key: &String) {
-    let new_api_key = ApiKey::from_string(String::from(api_key));
+    // TODO: use result instead of expect
+    let new_api_key = ApiKey::from_string(String::from(api_key)).expect("Invalid API key");
 
     store_api_key(new_api_key);
 }
 
 pub fn access_code(access_code: &String) {
-    let new_access_code = AccessCode::from_string(String::from(access_code));
+    // TODO: use result instead of expect
+    let new_access_code =
+        AccessCode::from_string(String::from(access_code)).expect("Invalid access code");
 
     store_access_token(new_access_code);
 }
@@ -58,67 +60,14 @@ fn store_api_key(new_api_key: ApiKey) {
     info!("Configuration updated");
 }
 
-pub struct ApiKey {
-    value: String,
-    mode: ApiKeyMode,
-}
-
-#[derive(EnumString, Debug)]
-pub enum ApiKeyMode {
-    Live,
-    Test,
-}
-
-impl ApiKeyMode {
-    pub fn from_string(value: String) -> Self {
-        match value.as_str() {
-            "live" => ApiKeyMode::Live,
-            "test" => ApiKeyMode::Test,
-            _ => {
-                panic!("Invalid mode")
-            }
-        }
-    }
-}
-
-impl ApiKey {
-    pub fn from_string(value: String) -> Self {
-        let api_key_format = Regex::new(r"^(test|live)_{1}\w{30}$").unwrap();
-
-        if !api_key_format.is_match(&value) {
-            panic!("Invalid Api Key format");
-        }
-
-        let cap = api_key_format.captures(&value).unwrap();
-        let mode = ApiKeyMode::from_string(cap[1].to_string());
-
-        ApiKey { value, mode }
-    }
-}
-
-struct AccessCode {
-    value: String,
-}
-
-impl AccessCode {
-    pub fn from_string(value: String) -> Self {
-        let access_code_format = Regex::new(r"^(access)_{1}\w{40}$").unwrap();
-
-        if !access_code_format.is_match(&value) {
-            panic!("Invalid Access Code format");
-        }
-
-        AccessCode { value }
-    }
-}
-
 #[derive(Debug)]
-pub struct SorryCouldNotRetrieveApiKey {}
+pub struct SorryCouldNotRetrieveApiKey {
+    pub error_message: String,
+}
 
 fn ask_api_key() -> Result<ApiKey, SorryCouldNotRetrieveApiKey> {
     let question = Question::input("api_key")
         .message("Input your new API key")
-        .default("live_Rrm6VWAGFDPwA6fuv759BeKr2J882s")
         .build();
 
     let answer = requestty::prompt_one(question);
@@ -126,8 +75,13 @@ fn ask_api_key() -> Result<ApiKey, SorryCouldNotRetrieveApiKey> {
     match answer {
         Ok(result) => {
             let answer = result.as_string().unwrap();
-            Ok(ApiKey::from_string(String::from(answer)))
+            // TODO: use result
+            ApiKey::from_string(String::from(answer)).map_err(|e| SorryCouldNotRetrieveApiKey {
+                error_message: format!("{}", e),
+            })
         }
-        Err(_) => Err(SorryCouldNotRetrieveApiKey {}),
+        Err(_) => Err(SorryCouldNotRetrieveApiKey {
+            error_message: String::from("Could not retrieve API key"),
+        }),
     }
 }

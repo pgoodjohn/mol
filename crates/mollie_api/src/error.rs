@@ -3,6 +3,9 @@ pub enum Error {
     #[error("Invalid api key")]
     InvalidApiKey,
 
+    #[error("Invalid api key mode (should be either live or test)")]
+    InvalidApiKeyMode,
+
     #[error("Invalid access code")]
     InvalidAccessCode,
 
