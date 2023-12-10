@@ -1,24 +1,9 @@
-use super::console;
-use super::mollie;
-use super::mollie::organizations::OrganizationsApi;
-use log::info;
+use mollie_api::Mollie;
 
-pub fn command() {
-    let client = mollie::ApiClientBuilder::new()
-        .blocking()
-        .url(super::config::api_url().unwrap())
-        .auth(super::config::get_bearer_token().unwrap())
-        .spawn();
-
-    let response = client.get_current_organization();
-
-    match response {
-        Ok(success) => {
-            info!(
-                "Successfully authenticated as Organization {} ({})",
-                success.name, success.id
-            );
-        }
-        Err(e) => console::handle_mollie_client_error(e),
-    }
+pub async fn command() -> anyhow::Result<()> {
+    let token = super::config::get_bearer_token().unwrap();
+    let response = Mollie::build(&token.value).organizations().me().await?;
+    println!("Organization: {:#?}", response.id);
+    println!("{:#?}", response);
+    Ok(())
 }

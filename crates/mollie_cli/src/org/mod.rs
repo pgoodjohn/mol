@@ -25,13 +25,12 @@ pub enum OrgCommands {
     },
 }
 
-pub fn command(command: &OrgCommand) {
+pub async fn command(command: &OrgCommand) -> anyhow::Result<()> {
     match command.command.as_ref() {
         Some(OrgCommands::Permissions { granted }) => {
             permissions::command(granted);
         }
-        None => {
-            me::command();
-        }
-    }
+        None => me::command().await?,
+    };
+    Ok(())
 }
