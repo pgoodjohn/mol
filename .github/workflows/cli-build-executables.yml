@@ -71,8 +71,8 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          mol-ubuntu-latest-x86_64
-          mol-macos-latest-x86_64
-          mol-macos-latest-aarch64
+          /home/runner/work/mol/mol/mol-ubuntu-latest-x86_64
+          /home/runner/work/mol/mol/mol-macos-latest-x86_64
+          /home/runner/work/mol/mol/mol-macos-latest-aarch64
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
