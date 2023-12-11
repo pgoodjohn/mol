@@ -11,7 +11,7 @@ use super::mollie;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
     pub api_url: String,
-    pub access_code: Option<String>,
+    pub access_token: Option<String>,
     pub keys: Keys,
 }
 
@@ -25,7 +25,7 @@ pub struct Keys {
 pub enum CouldNotRetrieveConfig {
     UnableToReadFile(io::Error),
     UnableToParseFile(toml::de::Error),
-    NoAccessCodeSet(),
+    NoAccessTokenSet(),
     NoLiveApiKeySet(),
     NoTestApiKeySet(),
 }
@@ -35,7 +35,7 @@ impl fmt::Display for CouldNotRetrieveConfig {
         match *self {
             CouldNotRetrieveConfig::UnableToReadFile(ref err) => write!(f, "IO error: {}", err),
             CouldNotRetrieveConfig::UnableToParseFile(ref err) => write!(f, "TOML parse error: {}", err),
-            CouldNotRetrieveConfig::NoAccessCodeSet() => write!(f, "No Access Code set. Run 'mol auth add --access-code {{access-code}} or 'mol auth add -i' to configure one."),
+            CouldNotRetrieveConfig::NoAccessTokenSet() => write!(f, "No Access Token set. Run 'mol auth add --access-token {{access-token}} or 'mol auth add -i' to configure one."),
             CouldNotRetrieveConfig::NoLiveApiKeySet() => write!(f, "No Api Key set. Run 'mol auth add --api-key api-key or 'mol auth add -i' to set one up."),
             CouldNotRetrieveConfig::NoTestApiKeySet() => write!(f, "No testmode Api Key set. Run 'mol auth add --api-key api-key or 'mol auth add -i' to set one up."),
         }
@@ -47,7 +47,7 @@ impl error::Error for CouldNotRetrieveConfig {
         match *self {
             CouldNotRetrieveConfig::UnableToParseFile(ref err) => Some(err),
             CouldNotRetrieveConfig::UnableToReadFile(ref err) => Some(err),
-            CouldNotRetrieveConfig::NoAccessCodeSet() => None,
+            CouldNotRetrieveConfig::NoAccessTokenSet() => None,
             CouldNotRetrieveConfig::NoLiveApiKeySet() => None,
             CouldNotRetrieveConfig::NoTestApiKeySet() => None,
         }
@@ -84,12 +84,12 @@ pub fn api_key_test() -> Result<String, CouldNotRetrieveConfig> {
     }
 }
 
-pub fn access_code() -> Result<String, CouldNotRetrieveConfig> {
+pub fn access_token() -> Result<String, CouldNotRetrieveConfig> {
     let config = from_file()?;
 
-    match config.access_code {
+    match config.access_token {
         Some(key) => Ok(key),
-        None => Err(CouldNotRetrieveConfig::NoAccessCodeSet()),
+        None => Err(CouldNotRetrieveConfig::NoAccessTokenSet()),
     }
 }
 
@@ -148,15 +148,15 @@ fn config_path() -> PathBuf {
 }
 
 pub fn get_bearer_token() -> Result<mollie::ApiBearerToken, Box<dyn std::error::Error>> {
-    match access_code() {
-        Ok(access_code) => {
+    match access_token() {
+        Ok(access_token) => {
             return Ok(mollie::ApiBearerToken {
-                value: access_code.to_string(),
-                token_type: mollie::ApiTokenTypes::AccessCode,
+                value: access_token.to_string(),
+                token_type: mollie::ApiTokenTypes::AccessToken,
             });
         }
         Err(_) => {
-            debug!("No access code set, trying to see if an API key is set instead")
+            debug!("No access token set, trying to see if an API key is set instead")
         }
     }
     match api_key() {

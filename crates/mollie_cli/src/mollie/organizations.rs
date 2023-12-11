@@ -31,7 +31,7 @@ pub trait OrganizationsApi {
     ) -> Result<OrganizationResource, super::errors::ApiClientError> {
         let auth_token = self.get_authentication_method();
         debug!("{:?}", &auth_token);
-        if auth_token.token_type != super::ApiTokenTypes::AccessCode {
+        if auth_token.token_type != super::ApiTokenTypes::AccessToken {
             return Err(
                 super::errors::ApiClientError::CouldNotFindValidAuthorizationMethodToPerformRequest(
                 ),

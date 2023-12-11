@@ -6,8 +6,8 @@ pub enum Error {
     #[error("Invalid api key mode (should be either live or test)")]
     InvalidApiKeyMode,
 
-    #[error("Invalid access code")]
-    InvalidAccessCode,
+    #[error("Invalid access token")]
+    InvalidAccessToken,
 
     #[error("Error while performing request: {0}")]
     CouldNotPerformRequest(#[from] reqwest::Error),

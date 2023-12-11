@@ -60,7 +60,7 @@ pub fn interactive(debug: &bool) {
     // Redirect URL
     let redirect_url = ask_redirect_url().unwrap();
     // Webhook (Optional fields [...])
-    // Profile ID - prompted only if auth is via access code
+    // Profile ID - prompted only if auth is via access token
     let profile_id = ask_profile_id().unwrap();
     let create_payment_request = super::mollie::payments::CreatePaymentRequest {
         amount: super::mollie::payments::Amount {
@@ -221,9 +221,9 @@ fn ask_redirect_url() -> Result<String, SorryCouldNotCreatePayment> {
 }
 
 fn ask_profile_id() -> Result<Option<String>, SorryCouldNotCreatePayment> {
-    match config::access_code() {
+    match config::access_token() {
         Ok(_) => {
-            // found access code, continue
+            // found access token, continue
         }
         Err(_) => {
             return Ok(None);
