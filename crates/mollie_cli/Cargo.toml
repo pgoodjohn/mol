@@ -9,6 +9,7 @@ repository.workspace = true
 
 [dependencies]
 mollie_api = { path = "../mollie_api" }
+mollie_config = { path = "../mollie_config" }
 log = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
