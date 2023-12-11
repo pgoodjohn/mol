@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 
 use super::{amount::Amount, link::Link};
 
@@ -51,4 +51,13 @@ pub struct PaymentsListResponse {
 #[derive(Debug, Deserialize)]
 pub struct PaymentsList {
     pub payments: Vec<Payment>
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PaymentCreateRequest {
+    pub amount: Amount,
+    pub description: String,
+    pub redirect_url: String,
+    pub profile_id: Option<String>, 
 }

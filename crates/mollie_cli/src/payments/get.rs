@@ -1,4 +1,3 @@
-use super::mollie;
 use mollie_api::Mollie;
 use log::{debug, info};
 
@@ -15,6 +14,8 @@ pub async fn command(payment_id: &String) -> anyhow::Result<()>{
         "{} | {} | {} {} | {}",
         payment.id, payment.mode, payment.amount.value, payment.amount.currency, payment.status
     );
+
+   
 
     return Ok(());
 }

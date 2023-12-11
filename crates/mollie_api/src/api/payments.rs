@@ -4,7 +4,7 @@
 //!
 //! Used to retrieve information about 
 use crate::{
-    models::{payment::{Payment, PaymentsListResponse}},
+    models::{payment::{Payment, PaymentsListResponse, PaymentCreateRequest}},
     ApiClient,
 };
 
@@ -47,5 +47,12 @@ impl<'client> PaymentsApi<'client> {
         }
 
         self.api_client.get(&endpoint, Some(params)).await
+    }
+
+    /// [Create Payment]
+    pub async fn create_payment(&self, body: PaymentCreateRequest) -> crate::Result<Payment> {
+        let endpoint = "/payments";
+        
+        self.api_client.post(&endpoint, &body).await
     }
 }

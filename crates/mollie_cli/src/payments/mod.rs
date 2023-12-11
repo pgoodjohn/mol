@@ -83,7 +83,7 @@ pub async fn command(payments_command: &PaymentsCommmand) {
         }) => {
             match interactive {
                 true => {
-                    create::interactive(debug);
+                    create::interactive(debug).await;
                     return;
                 }
                 false => {}
@@ -96,7 +96,7 @@ pub async fn command(payments_command: &PaymentsCommmand) {
                 redirect_url.as_ref(),
                 profile_id.as_ref(),
                 debug,
-            );
+            ).await;
         }
         Some(PaymentsCommands::Get { id }) => {
             get::command(id).await;

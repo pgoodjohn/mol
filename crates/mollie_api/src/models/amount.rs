@@ -1,8 +1,6 @@
-use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
 
-use serde::Deserialize;
-
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Serialize)]
 pub struct Amount{
 
     pub value: String,
