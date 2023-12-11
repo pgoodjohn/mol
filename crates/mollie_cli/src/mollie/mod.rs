@@ -154,19 +154,19 @@ pub struct ApiBearerToken {
 #[derive(Debug, PartialEq)]
 pub enum ApiTokenTypes {
     ApiKey,
-    AccessCode,
+    AccessToken,
 }
 
 fn get_bearer_token_from_config() -> Result<ApiBearerToken, Box<dyn std::error::Error>> {
-    match config::access_code() {
-        Ok(access_code) => {
+    match config::access_token() {
+        Ok(access_token) => {
             return Ok(ApiBearerToken {
-                value: access_code.to_string(),
-                token_type: ApiTokenTypes::AccessCode,
+                value: access_token.to_string(),
+                token_type: ApiTokenTypes::AccessToken,
             });
         }
         Err(_) => {
-            debug!("No access code set, trying to see if an API key is set instead")
+            debug!("No access token set, trying to see if an API key is set instead")
         }
     }
 
@@ -197,7 +197,7 @@ mod client_builder_tests {
         let client = super::ApiClientBuilder::new()
             .auth(super::ApiBearerToken {
                 value: String::from("Test"),
-                token_type: super::ApiTokenTypes::AccessCode {},
+                token_type: super::ApiTokenTypes::AccessToken {},
             })
             .url(String::from("https://api.mollie.dev/"))
             .blocking()
@@ -213,7 +213,7 @@ mod client_builder_tests {
         super::ApiClientBuilder::new()
             .auth(super::ApiBearerToken {
                 value: String::from("Test"),
-                token_type: super::ApiTokenTypes::AccessCode {},
+                token_type: super::ApiTokenTypes::AccessToken {},
             })
             .blocking()
             .spawn();
@@ -234,7 +234,7 @@ mod client_builder_tests {
         super::ApiClientBuilder::new()
             .auth(super::ApiBearerToken {
                 value: String::from("Test"),
-                token_type: super::ApiTokenTypes::AccessCode {},
+                token_type: super::ApiTokenTypes::AccessToken {},
             })
             .url(String::from("https://api.mollie.dev/"))
             .spawn();

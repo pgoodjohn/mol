@@ -26,7 +26,7 @@ pub enum AuthCommands {
         api_key: Option<String>,
 
         #[clap(long)]
-        access_code: Option<String>,
+        access_token: Option<String>,
     },
     /// Get Auth information
     Get {},
@@ -37,19 +37,29 @@ pub fn command(command: &AuthCommand) {
         Some(AuthCommands::Add {
             interactive,
             api_key,
-            access_code,
+             access_token,
         }) => {
             if *interactive {
                 store::interactive()
             }
 
             match api_key {
-                Some(api_key) => store::api_key(api_key),
+                Some(api_key) => match store::api_key(api_key) {
+                    Ok(_) => {}
+                    Err(err) => {
+                        info!("Error: {:?}", err);
+                    }
+                }
                 None => {}
             }
 
-            match access_code {
-                Some(access_code) => store::access_code(access_code),
+            match access_token {
+                Some(access_token) => match store::access_token(access_token) {
+                    Ok(_) => {}
+                    Err(err) => {
+                        info!("Error: {:?}", err);
+                    }
+                }
                 None => {}
             }
         }
@@ -57,7 +67,7 @@ pub fn command(command: &AuthCommand) {
             info!("Retrieving current configuration");
             info!("Live API Key: {:?}", config::api_key().ok());
             info!("Test API Key: {:?}", config::api_key_test().ok());
-            info!("Access Token: {:?}", config::access_code().ok());
+            info!("Access Token: {:?}", config::access_token().ok());
         }
         None => {}
     }

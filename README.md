@@ -65,14 +65,14 @@ Every command will print the above help menu if not enough argument are provided
 
 ### Authenticate
 
-To interact with the Mollie API, you will need to register an API Key. You can either generate an "Organization Access Code" or get your "Live" or "Test" API keys from the [Mollie Dashboard](https://my.mollie.com/dashboard/developers/api-keys).
+To interact with the Mollie API, you will need to register an API Key. You can either generate an "Organization Access Token" or get your "Live" or "Test" API keys from the [Mollie Dashboard](https://my.mollie.com/dashboard/developers/api-keys).
 
 Once you obtained one, you can register it with `mol` by running:
 
 ```
 $ mol auth add --api-key {live_123134123} # Live API Key
 $ mol auth add --api-key {test_123134123} # Test API Key
-$ mol auth add --access-code {access_1231231123} # Organization Access Token
+$ mol auth add --access-token {access_1231231123} # Organization Access Token
 ```
 
 To verify you are authenticated correctly, you can get your organization details with:

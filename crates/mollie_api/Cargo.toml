@@ -1,6 +1,8 @@
 [package]
 name = "mollie_api"
-version = "0.1.0"
+description = "A SDK for the Mollie API"
+license = "MIT"
+version = "0.0.2"
 edition.workspace = true
 homepage.workspace = true
 repository.workspace = true

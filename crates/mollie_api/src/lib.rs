@@ -164,3 +164,21 @@ impl<'c> Mollie<'c> {
         payments::PaymentsApi::new(&self.api_client)
     }
 }
+
+#[cfg(test)]
+mod client_tests {
+    use super::Mollie;
+
+    #[tokio::test]
+    async fn test_organization_api_is_unauthorized() {
+        let auth_token = String::from("access_invalidAccessToken");
+        let client = Mollie::build(&auth_token);
+
+        match client.organizations().me().await {
+            Ok(_r) => panic!("Expected API to return a 401 error code, but got a valid response."),
+            Err(e) => { 
+                assert!(e.to_string().contains("Mollie API Error 401: Unauthorized Request - Missing authentication, or failed to authenticate."));
+            }
+        }
+    }
+}
