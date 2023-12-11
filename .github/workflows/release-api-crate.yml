@@ -38,7 +38,7 @@ jobs:
           toolchain: stable
           override: true
       - name: Change to SDK directory
-        run: cd sdk
+        run: cd crates/mollie_api
       - name: Publish to Crates.io
         uses: actions-rs/cargo@v1
         with:
