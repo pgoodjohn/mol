@@ -44,7 +44,12 @@ pub fn command(command: &AuthCommand) {
             }
 
             match api_key {
-                Some(api_key) => store::api_key(api_key),
+                Some(api_key) => match store::api_key(api_key) {
+                    Ok(_) => {}
+                    Err(err) => {
+                        info!("Error: {:?}", err);
+                    }
+                }
                 None => {}
             }
 
