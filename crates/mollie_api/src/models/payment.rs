@@ -53,7 +53,7 @@ pub struct PaymentsList {
     pub payments: Vec<Payment>
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PaymentCreateRequest {
     pub amount: Amount,

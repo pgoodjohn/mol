@@ -37,7 +37,9 @@ pub async fn command(
 
     let token = super::config::get_bearer_token().unwrap();
 
-    let payment = Mollie::build(&token.value).payments().create_payment(create_payment_request).await?;
+    let payment = Mollie::build(&token.value).payments().create_payment(&create_payment_request).await?;
+
+    log::debug!("{:?}", payment);
     
     return Ok(handle_payment_created_response(payment));
     
@@ -75,9 +77,9 @@ pub async fn interactive(debug: &bool) -> anyhow::Result<()> {
 
     let token = super::config::get_bearer_token().unwrap();
 
-    let payment = Mollie::build(&token.value).payments().create_payment(create_payment_request).await?;
+    let payment = Mollie::build(&token.value).payments().create_payment(&create_payment_request).await?;
     
-
+    log::debug!("{:?}", payment);
     return Ok(handle_payment_created_response(payment));
 }
 
