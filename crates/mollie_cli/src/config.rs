@@ -7,7 +7,6 @@ use std::io;
 use std::path::PathBuf;
 extern crate dirs;
 use super::mollie;
-use toml;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
@@ -60,8 +59,7 @@ pub fn from_file() -> Result<Config, CouldNotRetrieveConfig> {
         fs::read_to_string(config_path()).map_err(CouldNotRetrieveConfig::UnableToReadFile)?;
     debug!("Config text loaded:\n\n{}", contents);
 
-    let config: Config =
-        toml::from_str(&contents).map_err(CouldNotRetrieveConfig::UnableToParseFile)?;
+    let config = toml::from_str(&contents).map_err(CouldNotRetrieveConfig::UnableToParseFile)?;
 
     debug!("Loaded config: {:?}", config);
 
@@ -161,14 +159,11 @@ pub fn get_bearer_token() -> Result<mollie::ApiBearerToken, Box<dyn std::error::
             debug!("No access code set, trying to see if an API key is set instead")
         }
     }
-
     match api_key() {
-        Ok(live_api_key) => {
-            return Ok(mollie::ApiBearerToken {
-                value: live_api_key.to_string(),
-                token_type: mollie::ApiTokenTypes::ApiKey,
-            });
-        }
+        Ok(live_api_key) => Ok(mollie::ApiBearerToken {
+            value: live_api_key.to_string(),
+            token_type: mollie::ApiTokenTypes::ApiKey,
+        }),
         Err(_) => {
             // TODO: Handle this error better - probably check it also before doing all the prompts
             panic!("No auth set!!!")

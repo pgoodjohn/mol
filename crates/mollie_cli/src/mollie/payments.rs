@@ -104,18 +104,12 @@ pub trait PaymentsApi {
     ) -> Result<ListPaymentsResponse, super::errors::ApiClientError> {
         let mut query_params: std::collections::HashMap<&str, String> = HashMap::new();
 
-        match limit {
-            Some(limit) => {
-                query_params.insert("limit", String::from(limit.to_string()));
-            }
-            None => {}
+        if let Some(l) = limit {
+            query_params.insert("limit", l.to_string());
         }
 
-        match from {
-            Some(from) => {
-                query_params.insert("from", String::from(from));
-            }
-            None => {}
+        if let Some(f) = from {
+            query_params.insert("from", f.to_string());
         }
 
         let response = self
@@ -134,9 +128,10 @@ pub trait PaymentsApi {
         let decoded_error_response = response
             .json::<super::MollieApiError>()
             .map_err(super::errors::ApiClientError::CouldNotUnderstandResponse)?;
-        return Err(super::errors::ApiClientError::MollieApiReturnedAnError(
+
+        Err(super::errors::ApiClientError::MollieApiReturnedAnError(
             decoded_error_response,
-        ));
+        ))
     }
 
     fn get_payment_details(
@@ -163,9 +158,10 @@ pub trait PaymentsApi {
         let decoded_error_response = response
             .json::<super::MollieApiError>()
             .map_err(super::errors::ApiClientError::CouldNotUnderstandResponse)?;
-        return Err(super::errors::ApiClientError::MollieApiReturnedAnError(
+
+        Err(super::errors::ApiClientError::MollieApiReturnedAnError(
             decoded_error_response,
-        ));
+        ))
     }
 
     fn create_payment(
@@ -188,8 +184,9 @@ pub trait PaymentsApi {
         let decoded_error_response = response
             .json::<super::MollieApiError>()
             .map_err(super::errors::ApiClientError::CouldNotUnderstandResponse)?;
-        return Err(super::errors::ApiClientError::MollieApiReturnedAnError(
+
+        Err(super::errors::ApiClientError::MollieApiReturnedAnError(
             decoded_error_response,
-        ));
+        ))
     }
 }

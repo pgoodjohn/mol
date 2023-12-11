@@ -31,7 +31,8 @@ enum Commands {
     Org(org::OrgCommand),
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     logger::init(cli.debug);
@@ -44,7 +45,9 @@ fn main() {
         Some(Commands::Payments(command)) => payments::command(&command),
         Some(Commands::Auth(command)) => auth::command(&command),
         Some(Commands::Env(command)) => env::command(&command),
-        Some(Commands::Org(command)) => org::command(&command),
+        Some(Commands::Org(command)) => org::command(&command).await?,
         None => {}
-    }
+    };
+
+    Ok(())
 }

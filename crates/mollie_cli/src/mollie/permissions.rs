@@ -57,9 +57,10 @@ pub trait Permissions {
         let decoded_error_response = response
             .json::<super::MollieApiError>()
             .map_err(super::errors::ApiClientError::CouldNotUnderstandResponse)?;
-        return Err(super::errors::ApiClientError::MollieApiReturnedAnError(
+
+        Err(super::errors::ApiClientError::MollieApiReturnedAnError(
             decoded_error_response,
-        ));
+        ))
     }
 }
 

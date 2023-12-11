@@ -1,0 +1,37 @@
+[package]
+name = "mollie_cli"
+version = "0.1.0"
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+mollie_api = { path = "../mollie_api" }
+log = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+tokio = { version = "1.35", features = ["full"] } # TODO: remove full
+anyhow = { version = "1.0" }
+clap = { version = "4.4", features = ["derive"] }
+requestty = "0.5"
+toml = "0.8"
+dirs = "5.0"
+strum = { version = "0.25", features = ["derive"] }
+
+env_logger = { version = "0.10" }
+pad = { version = "0.1"}
+
+# TODO: remove reqwest and use only mollie_api
+reqwest = { version = "0.11", features = ["json", "blocking"] }
+
+
+[dev-dependencies]
+testing_logger ={ version = "0.1"}
+
+[[bin]]
+name = "mol"
+path = "./src/main.rs"

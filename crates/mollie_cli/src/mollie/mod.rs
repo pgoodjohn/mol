@@ -102,12 +102,10 @@ impl ApiClient {
         parameter: Option<String>,
         query: Option<HashMap<&str, String>>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error> {
-        let full_url: String;
-
-        match parameter {
-            Some(p) => full_url = format!("{}/{}/{}", &self.base_url, url, p),
-            None => full_url = format!("{}/{}", &self.base_url, url),
-        }
+        let full_url: String = match parameter {
+            Some(p) => format!("{}/{}/{}", &self.base_url, url, p),
+            None => format!("{}/{}", &self.base_url, url),
+        };
 
         let mut request = self
             .client
@@ -123,11 +121,8 @@ impl ApiClient {
                 ),
             );
 
-        match query {
-            Some(query) => {
-                request = request.query(&query);
-            }
-            None => {}
+        if let Some(query) = query {
+            request = request.query(&query);
         }
 
         let response = request.send()?;
@@ -176,12 +171,10 @@ fn get_bearer_token_from_config() -> Result<ApiBearerToken, Box<dyn std::error::
     }
 
     match config::api_key() {
-        Ok(live_api_key) => {
-            return Ok(ApiBearerToken {
-                value: live_api_key.to_string(),
-                token_type: ApiTokenTypes::ApiKey,
-            });
-        }
+        Ok(live_api_key) => Ok(ApiBearerToken {
+            value: live_api_key.to_string(),
+            token_type: ApiTokenTypes::ApiKey,
+        }),
         Err(_) => {
             // TODO: Handle this error better - probably check it also before doing all the prompts
             panic!("No auth set!!!")

@@ -1,6 +1,6 @@
 .PHONY:release
 release:
-	cargo build --release --bin mol-cli
+	cargo build --release
 	mkdir -p ~/.mol/bin/
-	mv -f ./target/release/mol-cli ~/.mol/bin/mol
+	cp -f ./target/release/mol ~/.mol/bin/mol
 	[ ! -f ~/.mol/conf.toml ] && cp ./release/config/sample.toml ~/.mol/conf.toml

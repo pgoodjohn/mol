@@ -1,13 +1,15 @@
 # Mol
+
 A CLI interface for the Mollie API
 
 ---
 
 ## Installation
+
 Installing the `mol` CLI interface will require you to build it from source. To do this you will need `cargo` installed on your machine. You can verify that it is installed by running:
 
 ```
-$ cargo -V  
+$ cargo -V
 cargo 1.59.0 (49d8809dc 2022-02-10)
 ```
 
@@ -35,6 +37,7 @@ fi
 ```
 
 ### Update
+
 To update to a newerversion of `mol`, simply run `make release` again. This will rebuild the binary with the latest code in your local repository and move it to `~/.mol/bin/mol`.
 
 ## Usage
@@ -43,30 +46,26 @@ After running `make release` and reloading your shell you can start using `mol` 
 
 ```
 $ mol
+Usage: mol [OPTIONS] [COMMAND]
 
-mol-cli 0.1.0
-A Command Line Interface for the Mollie API
+Commands:
+  payments  Do things with Payments
+  auth      Do Auth things
+  env       Do environmenty things
+  org       Do Organizationy things
+  help      Print this message or the help of the given subcommand(s)
 
-USAGE:
-    mol [OPTIONS] [SUBCOMMAND]
-
-OPTIONS:
-    -d, --debug
-    -h, --help       Print help information
-    -V, --version    Print version information
-
-SUBCOMMANDS:
-    auth        Do Auth things
-    help        Print this message or the help of the given subcommand(s)
-    org         Do Organizationy things
-    payments    Do things with Payments
+Options:
+  -d, --debug
+  -h, --help     Print help
+  -V, --version  Print version
 ```
 
 Every command will print the above help menu if not enough argument are provided (or if it is run with the `--help` flag).
 
 ### Authenticate
 
-To interact with the Mollie API, you will need to register an API Key. You can either generate an "Organization Access Code" or get your "Live" or "Test" API keys from the [Mollie Dashboard](https://my.mollie.com/dashboard/developers/api-keys). 
+To interact with the Mollie API, you will need to register an API Key. You can either generate an "Organization Access Code" or get your "Live" or "Test" API keys from the [Mollie Dashboard](https://my.mollie.com/dashboard/developers/api-keys).
 
 Once you obtained one, you can register it with `mol` by running:
 
