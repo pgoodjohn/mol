@@ -109,7 +109,7 @@ pub async fn command(payments_command: &PaymentsCommmand) {
             amount,
             description,
         }) => {
-            refund::command(id, amount, description);
+            refund::command(id, amount, description).await;
         }
         None => {}
     }

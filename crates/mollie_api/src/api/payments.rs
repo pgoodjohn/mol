@@ -27,7 +27,7 @@ impl<'client> PaymentsApi<'client> {
     }
 
     // [List Payments](https://docs.mollie.com/reference/v2/payments-api/list-payments)
-    pub async fn list(&self, limit: &Option<i32>, from: &Option<String>, profile_id: &Option<String>, test_mode: &Option<bool>) -> crate::Result<PaymentsListResponse,super::errors::ApiClientError>> {
+    pub async fn list(&self, limit: &Option<i32>, from: &Option<String>, profile_id: &Option<String>, test_mode: &Option<bool>) -> crate::Result<PaymentsListResponse> {
         let endpoint = "/payments";
         let mut params = std::collections::HashMap::new();
         if let Some(l) = limit {
@@ -50,7 +50,7 @@ impl<'client> PaymentsApi<'client> {
     }
 
     /// [Create Payment](https://docs.mollie.com/reference/v2/payments-api/create-payment)
-    pub async fn create_payment(&self, body: &PaymentCreateRequest) -> crate::Result<Payment, super::errors::ApiClientError>> {
+    pub async fn create_payment(&self, body: &PaymentCreateRequest) -> crate::Result<Payment> {
         let endpoint = "/payments";
         
         self.api_client.post(&endpoint, body).await
