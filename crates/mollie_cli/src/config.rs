@@ -12,6 +12,7 @@ use super::mollie;
 pub struct Config {
     pub api_url: String,
     pub access_code: Option<String>,
+    pub refresh_token: Option<String>,
     pub keys: Keys,
 }
 

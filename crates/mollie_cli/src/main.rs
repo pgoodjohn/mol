@@ -43,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Some(Commands::Payments(command)) => payments::command(&command),
-        Some(Commands::Auth(command)) => auth::command(&command),
+        Some(Commands::Auth(command)) => auth::command(&command).await?,
         Some(Commands::Env(command)) => env::command(&command),
         Some(Commands::Org(command)) => org::command(&command).await?,
         None => {}

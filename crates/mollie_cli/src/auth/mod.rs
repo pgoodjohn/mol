@@ -1,6 +1,11 @@
 use super::config;
 use clap::{Parser, Subcommand};
 use log::info;
+use oauth2;
+use oauth2::basic::BasicClient;
+use oauth2::{AuthorizationCode, AuthUrl, ClientId, ClientSecret, CsrfToken, Scope, TokenUrl};
+use oauth2::reqwest::async_http_client;
+use reqwest::Url;
 
 mod store;
 
@@ -28,11 +33,31 @@ pub enum AuthCommands {
         #[clap(long)]
         access_code: Option<String>,
     },
+    #[clap(arg_required_else_help(true))]
+    Connect {
+        #[clap(long)]
+        client_id: String,
+
+        #[clap(long)]
+        client_secret: Option<String>,
+
+        #[clap(long)]
+        finish: Option<String>,
+    },
     /// Get Auth information
     Get {},
 }
 
-pub fn command(command: &AuthCommand) {
+#[derive(Subcommand)]
+pub enum AuthConnectFinishCommand {
+    #[clap(arg_required_else_help(true))]
+    Redirect {
+        #[clap(long)]
+        url: String,
+    },
+}
+
+pub async fn command(command: &AuthCommand) -> anyhow::Result<()> {
     match command.command.as_ref() {
         Some(AuthCommands::Add {
             interactive,
@@ -59,6 +84,39 @@ pub fn command(command: &AuthCommand) {
             info!("Test API Key: {:?}", config::api_key_test().ok());
             info!("Access Token: {:?}", config::access_code().ok());
         }
+        Some(AuthCommands::Connect { client_id, client_secret, finish }) => {
+            let client =
+                BasicClient::new(
+                    ClientId::new(client_id.into()),
+                    client_secret.clone().map(ClientSecret::new),
+                    AuthUrl::new("https://my.mollie.com/oauth2/authorize".into())?,
+                    Some(TokenUrl::new("https://api.mollie.com/oauth2/tokens".into())?)
+                );
+
+            if let Some(finish) = finish {
+                let url = Url::parse(&finish).expect("Invalid finish url");
+                let code = url.query_pairs().find(|(key, _)| key == "code").unwrap().1;
+
+                let request = client
+                    .exchange_code(AuthorizationCode::new(code.into()));
+                info!("{:#?}", request);
+
+                let result = request
+                    .request_async(async_http_client)
+                    .await;
+                info!("{:#?}", result);
+
+            } else {
+                let (auth_url, csrf_token) = client
+                    .authorize_url(CsrfToken::new_random)
+                    .add_extra_param("approval_prompt", "force")
+                    .add_scope(Scope::new("organizations.read".to_string()))
+                    .url();
+
+                info!("Browse to: {}", auth_url);
+            }
+        }
         None => {}
     }
+    Ok(())
 }

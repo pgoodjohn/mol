@@ -1,6 +1,6 @@
 use super::config;
 use log::{debug, info};
-use mollie_api::auth::{AccessCode, ApiKey, ApiKeyMode};
+use mollie_api::auth::{AccessCode, ApiKey, ApiKeyMode, OAuth};
 use requestty::Question;
 
 pub fn interactive() {
@@ -15,6 +15,13 @@ pub fn api_key(api_key: &String) {
     let new_api_key = ApiKey::from_string(String::from(api_key)).expect("Invalid API key");
 
     store_api_key(new_api_key);
+}
+
+pub fn store_refresh_token(refresh_token: &String) {
+    // TODO: use result instead of expect
+    let new_oauth = OAuth { refresh_token: refresh_token.into(), access_token: None };
+
+    store_oauth(new_oauth);
 }
 
 pub fn access_code(access_code: &String) {
@@ -51,6 +58,20 @@ fn store_api_key(new_api_key: ApiKey) {
             new_config.keys.test = Some(new_api_key.value);
         }
     }
+
+    debug!("Old config: {:?}", old_config);
+    debug!("New config: {:?}", new_config);
+
+    config::save_to_file(new_config).unwrap();
+
+    info!("Configuration updated");
+}
+
+fn store_oauth(oauth: OAuth) {
+    let old_config = config::from_file().unwrap();
+
+    let mut new_config = old_config.clone();
+    new_config.refresh_token = Some(oauth.refresh_token);
 
     debug!("Old config: {:?}", old_config);
     debug!("New config: {:?}", new_config);

@@ -80,6 +80,14 @@ impl AccessCode {
     }
 }
 
+#[derive(Debug)]
+pub struct OAuth {
+    /// The API key value.
+    pub refresh_token: String,
+
+    pub access_token: Option<String>,
+}
+
 #[cfg(test)]
 mod test {
     use crate::auth::AccessCode;
