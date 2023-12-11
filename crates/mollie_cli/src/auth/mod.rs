@@ -1,6 +1,7 @@
-use super::config;
+use crate::config::ConfigurationService;
 use clap::{Parser, Subcommand};
 use log::info;
+use mollie_api::auth::{AccessCode, ApiKey};
 
 mod store;
 
@@ -26,49 +27,47 @@ pub enum AuthCommands {
         api_key: Option<String>,
 
         #[clap(long)]
-        access_token: Option<String>,
+        access_code: Option<String>,
     },
     /// Get Auth information
     Get {},
 }
 
-pub fn command(command: &AuthCommand) {
+pub async fn command(
+    command: &AuthCommand,
+    config_service: &mut dyn ConfigurationService,
+) -> anyhow::Result<()> {
     match command.command.as_ref() {
         Some(AuthCommands::Add {
             interactive,
             api_key,
-             access_token,
+            access_code,
         }) => {
+            let mut store = store::Store::new(config_service);
+
             if *interactive {
-                store::interactive()
+                return store.interactive();
             }
 
-            match api_key {
-                Some(api_key) => match store::api_key(api_key) {
-                    Ok(_) => {}
-                    Err(err) => {
-                        info!("Error: {:?}", err);
-                    }
-                }
-                None => {}
+            if let Some(api_key) = api_key {
+                let parsed_api_key = ApiKey::try_from(api_key.clone())?;
+                return store.store_api_key(parsed_api_key);
             }
 
-            match access_token {
-                Some(access_token) => match store::access_token(access_token) {
-                    Ok(_) => {}
-                    Err(err) => {
-                        info!("Error: {:?}", err);
-                    }
-                }
-                None => {}
+            if let Some(access_code) = access_code {
+                let parsed_access_code = AccessCode::try_from(access_code.clone())?;
+                return store.store_access_code(parsed_access_code);
             }
         }
         Some(AuthCommands::Get {}) => {
+            let config = config_service.read();
+
             info!("Retrieving current configuration");
-            info!("Live API Key: {:?}", config::api_key().ok());
-            info!("Test API Key: {:?}", config::api_key_test().ok());
-            info!("Access Token: {:?}", config::access_token().ok());
+            info!("Live API Key: {:?}", config.live_api_key());
+            info!("Test API Key: {:?}", config.test_api_key());
+            info!("Access Token: {:?}", config.access_code());
         }
         None => {}
     }
+    Ok(())
 }

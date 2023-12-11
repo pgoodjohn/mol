@@ -1,5 +1,4 @@
-use super::config;
-use log::debug;
+use mollie_api::auth::ApiBearerToken;
 use reqwest::blocking::Client;
 use serde::ser;
 use serde::{Deserialize, Serialize};
@@ -44,7 +43,7 @@ impl ApiClientBuilder {
     }
 
     pub fn blocking(mut self) -> ApiClientBuilder {
-        self.client = Some(reqwest::blocking::Client::new());
+        self.client = Some(Client::new());
         self
     }
 
@@ -64,14 +63,6 @@ pub struct ApiClient {
 }
 
 impl ApiClient {
-    pub fn new() -> ApiClient {
-        ApiClient {
-            base_url: config::api_url().unwrap(),
-            auth_token: get_bearer_token_from_config().unwrap(),
-            client: reqwest::blocking::Client::new(),
-        }
-    }
-
     pub fn post<T: ser::Serialize>(
         &self,
         request: T,
@@ -80,7 +71,7 @@ impl ApiClient {
         let response = self
             .client
             .post(format!("{}/{}", &self.base_url, url))
-            .bearer_auth(&self.auth_token.value)
+            .bearer_auth(&self.auth_token.as_str())
             .header(
                 reqwest::header::USER_AGENT,
                 format!(
@@ -110,7 +101,7 @@ impl ApiClient {
         let mut request = self
             .client
             .get(full_url)
-            .bearer_auth(&self.auth_token.value)
+            .bearer_auth(&self.auth_token.as_str())
             .header(
                 reqwest::header::USER_AGENT,
                 format!(
@@ -141,44 +132,7 @@ impl organizations::OrganizationsApi for ApiClient {
         self.get(url, parameter, query)
     }
     fn get_authentication_method(&self) -> ApiBearerToken {
-        get_bearer_token_from_config().unwrap()
-    }
-}
-
-#[derive(Debug)]
-pub struct ApiBearerToken {
-    pub value: String,
-    pub token_type: ApiTokenTypes,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum ApiTokenTypes {
-    ApiKey,
-    AccessToken,
-}
-
-fn get_bearer_token_from_config() -> Result<ApiBearerToken, Box<dyn std::error::Error>> {
-    match config::access_token() {
-        Ok(access_token) => {
-            return Ok(ApiBearerToken {
-                value: access_token.to_string(),
-                token_type: ApiTokenTypes::AccessToken,
-            });
-        }
-        Err(_) => {
-            debug!("No access token set, trying to see if an API key is set instead")
-        }
-    }
-
-    match config::api_key() {
-        Ok(live_api_key) => Ok(ApiBearerToken {
-            value: live_api_key.to_string(),
-            token_type: ApiTokenTypes::ApiKey,
-        }),
-        Err(_) => {
-            // TODO: Handle this error better - probably check it also before doing all the prompts
-            panic!("No auth set!!!")
-        }
+        self.auth_token.clone()
     }
 }
 
@@ -191,30 +145,29 @@ pub struct MollieApiError {
 
 #[cfg(test)]
 mod client_builder_tests {
+    use mollie_api::auth::{AccessCode, ApiBearerToken};
 
     #[test]
     fn it_spawns_a_new_client() {
         let client = super::ApiClientBuilder::new()
-            .auth(super::ApiBearerToken {
+            .auth(ApiBearerToken::AccessCode(AccessCode {
                 value: String::from("Test"),
-                token_type: super::ApiTokenTypes::AccessToken {},
-            })
+            }))
             .url(String::from("https://api.mollie.dev/"))
             .blocking()
             .spawn();
 
         assert_eq!("https://api.mollie.dev/", client.base_url);
-        assert_eq!("Test", client.auth_token.value);
+        assert_eq!("Test", client.auth_token.as_str());
     }
 
     #[test]
     #[should_panic(expected = "Must have a base URL set.")]
     fn it_does_not_spawn_a_client_without_base_url() {
         super::ApiClientBuilder::new()
-            .auth(super::ApiBearerToken {
+            .auth(ApiBearerToken::AccessCode(AccessCode {
                 value: String::from("Test"),
-                token_type: super::ApiTokenTypes::AccessToken {},
-            })
+            }))
             .blocking()
             .spawn();
     }
@@ -232,10 +185,9 @@ mod client_builder_tests {
     #[should_panic(expected = "Must have a Client set.")]
     fn it_does_not_spawn_a_client_without_http_client() {
         super::ApiClientBuilder::new()
-            .auth(super::ApiBearerToken {
+            .auth(ApiBearerToken::AccessCode(AccessCode {
                 value: String::from("Test"),
-                token_type: super::ApiTokenTypes::AccessToken {},
-            })
+            }))
             .url(String::from("https://api.mollie.dev/"))
             .spawn();
     }

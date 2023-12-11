@@ -1,5 +1,4 @@
-use super::config;
-use super::console;
+use crate::config::ConfigurationService;
 use clap::{Parser, Subcommand};
 
 mod create;
@@ -69,7 +68,11 @@ pub enum PaymentsCommands {
     },
 }
 
-pub async fn command(payments_command: &PaymentsCommmand) {
+pub async fn command(
+    payments_command: &PaymentsCommmand,
+    config_service: &dyn ConfigurationService,
+) -> anyhow::Result<()> {
+    let config = config_service.read();
     match payments_command.command.as_ref() {
         Some(PaymentsCommands::Create {
             debug,
@@ -82,34 +85,42 @@ pub async fn command(payments_command: &PaymentsCommmand) {
         }) => {
             match interactive {
                 true => {
-                    create::interactive(debug).await;
-                    return;
+                    return create::interactive(config, debug).await;
                 }
                 false => {}
             }
 
             create::command(
+                config,
                 currency.as_ref(),
                 amount.as_ref(),
                 description.as_ref(),
                 redirect_url.as_ref(),
                 profile_id.as_ref(),
                 debug,
-            ).await;
+            )
+            .await?;
         }
         Some(PaymentsCommands::Get { id }) => {
-            get::command(id).await;
+            get::command(config, id).await?;
         }
-        Some(PaymentsCommands::List { limit, from, profile_id, test_mode }) => {
-            list::command(limit, from, profile_id, test_mode).await;
+        Some(PaymentsCommands::List {
+            limit,
+            from,
+            profile_id,
+            test_mode,
+        }) => {
+            list::command(config, limit, from, profile_id, test_mode).await?;
         }
         Some(PaymentsCommands::Refund {
             id,
             amount,
             description,
         }) => {
-            refund::command(id, amount, description).await;
+            refund::command(config, id, amount, description).await?;
         }
         None => {}
     }
+
+    Ok(())
 }

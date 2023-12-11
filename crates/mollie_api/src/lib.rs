@@ -183,7 +183,7 @@ mod client_tests {
 
         match client.organizations().me().await {
             Ok(_r) => panic!("Expected API to return a 401 error code, but got a valid response."),
-            Err(e) => { 
+            Err(e) => {
                 assert!(e.to_string().contains("Mollie API Error 401: Unauthorized Request - Missing authentication, or failed to authenticate."));
             }
         }
@@ -191,8 +191,10 @@ mod client_tests {
 
     #[tokio::test]
     async fn test_organization_api_authorizes() {
-        let auth_token = std::env::var("MOLLIE_ACCESS_TOKEN").expect("Please set a valid access token");
-        let expected_organization_id = std::env::var("MOLLIE_ORGANIZATION_ID").expect("Please set an organization id");
+        let auth_token =
+            std::env::var("MOLLIE_ACCESS_TOKEN").expect("Please set a valid access token");
+        let expected_organization_id =
+            std::env::var("MOLLIE_ORGANIZATION_ID").expect("Please set an organization id");
 
         let client = Mollie::build(&auth_token);
 

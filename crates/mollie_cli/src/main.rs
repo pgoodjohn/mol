@@ -1,5 +1,7 @@
 use clap::{Parser, Subcommand};
+use config::FigmentConfigurationService;
 use log::debug;
+
 mod auth;
 mod balances;
 mod config;
@@ -41,11 +43,13 @@ async fn main() -> anyhow::Result<()> {
         debug!("Debug mode enabled");
     }
 
+    let mut config_service = FigmentConfigurationService::new();
+
     match cli.command {
-        Some(Commands::Auth(command)) => auth::command(&command),
-        Some(Commands::Balances(command)) => balances::command(&command).await?,
-        Some(Commands::Org(command)) => org::command(&command).await?,
-        Some(Commands::Payments(command)) => payments::command(&command).await,
+        Some(Commands::Auth(command)) => auth::command(&command, &mut config_service).await?,
+        Some(Commands::Balances(command)) => balances::command(&command, &config_service).await?,
+        Some(Commands::Org(command)) => org::command(&command, &config_service).await?,
+        Some(Commands::Payments(command)) => payments::command(&command, &config_service).await?,
         None => {}
     };
 
