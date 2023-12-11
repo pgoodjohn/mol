@@ -1,16 +1,15 @@
 use crate::config::MollieConfig;
-use crate::error::{ConfigError, ConfigResult};
-use figment::error::Kind;
+use crate::error::ConfigResult;
 use figment::{
     providers::{Env, Format, Toml},
-    Error, Figment, Metadata,
+    Figment,
 };
-use miette::miette;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
-mod auth;
+pub use config::*;
+
 mod config;
 mod error;
 
@@ -71,6 +70,7 @@ impl ConfigurationService for FigmentConfigurationService {
 #[cfg(test)]
 mod test {
     use super::*;
+    use mollie_api::auth;
     use url::Url;
 
     #[test]
@@ -108,18 +108,19 @@ mod test {
                     },
                     auth: Some(config::AuthConfig {
                         access_code: Some(config::AccessCodeConfig {
-                            token: auth::AccessCode(
-                                "access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx123".to_string()
-                            ),
+                            token: auth::AccessCode {
+                                value: "access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx123"
+                                    .to_string()
+                            },
                         }),
                         api_keys: Some(config::ApiKeysConfig {
                             live: Some(auth::ApiKey {
                                 mode: auth::ApiKeyMode::Live,
-                                key: "live_xxxxxxxxxxxxxxxxxxxxxxxxxxx123".to_string(),
+                                value: "live_xxxxxxxxxxxxxxxxxxxxxxxxxxx123".to_string(),
                             }),
                             test: Some(auth::ApiKey {
                                 mode: auth::ApiKeyMode::Test,
-                                key: "test_xxxxxxxxxxxxxxxxxxxxxxxxxxx456".to_string(),
+                                value: "test_xxxxxxxxxxxxxxxxxxxxxxxxxxx456".to_string(),
                             }),
                         }),
                         connect: Some(config::ConnectConfig {

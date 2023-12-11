@@ -9,6 +9,7 @@ repository.workspace = true
 
 [dependencies]
 log = { workspace = true }
+mollie_api = { path = "../mollie_api" }
 figment = {  version = "0.10", features = ["env", "toml", "test"] }
 thiserror = "1"
 url = {  version = "2", features = ["serde"] }

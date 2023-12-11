@@ -867,6 +867,7 @@ dependencies = [
  "figment",
  "log",
  "miette",
+ "mollie_api",
  "serde",
  "thiserror",
  "toml",

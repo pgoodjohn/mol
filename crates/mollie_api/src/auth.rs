@@ -1,8 +1,11 @@
 use crate::error::Error;
+use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 use crate::Result;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(try_from = "String", into = "String")]
 pub struct ApiKey {
     /// The API key value.
     pub value: String,
@@ -11,31 +14,33 @@ pub struct ApiKey {
     pub mode: ApiKeyMode,
 }
 
-impl ApiKey {
-    /// Try to create an `ApiKey` from a string.
-    pub fn from_string(value: impl Into<String>) -> Result<Self> {
-        let key: String = value.into();
+impl TryFrom<String> for ApiKey {
+    type Error = Error;
 
-        if !Self::has_valid_length(&key) || !Self::has_valid_prefix(&key) {
+    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
+        let mode = ApiKeyMode::try_from(value.as_str())?;
+
+        if value.len() != 35 {
             return Err(Error::InvalidApiKey);
         }
 
-        let mode = ApiKeyMode::from_string(&key)?;
-
-        Ok(Self { value: key, mode })
-    }
-
-    pub fn has_valid_prefix(value: &str) -> bool {
-        value.starts_with("live_") || value.starts_with("test_")
-    }
-
-    /// Check if api key has a valid length (including prefix)
-    pub fn has_valid_length(value: &str) -> bool {
-        value.len() == 35
+        Ok(ApiKey { mode, value })
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+impl Into<String> for ApiKey {
+    fn into(self) -> String {
+        self.value
+    }
+}
+
+impl Display for ApiKey {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ApiKeyMode {
     /// Live API. To be used when receiving real payments.
     Live,
@@ -44,96 +49,164 @@ pub enum ApiKeyMode {
     Test,
 }
 
-impl ApiKeyMode {
-    /// Try to get the api key mode from a string.
-    pub fn from_string(value: impl Into<String>) -> Result<ApiKeyMode> {
-        let key: &str = &value.into();
-        match key {
-            _ if key.starts_with("live_") => Ok(ApiKeyMode::Live),
-            _ if key.starts_with("test_") => Ok(ApiKeyMode::Test),
-            _ => Err(Error::InvalidApiKeyMode),
+impl<'a> TryFrom<&'a str> for ApiKeyMode {
+    type Error = Error;
+
+    fn try_from(value: &'a str) -> std::result::Result<Self, Self::Error> {
+        if value.starts_with("test_") {
+            return Ok(ApiKeyMode::Test);
         }
+
+        if value.starts_with("live_") {
+            return Ok(ApiKeyMode::Live);
+        }
+
+        Err(Error::InvalidApiKeyMode)
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(try_from = "String", into = "String")]
 pub struct AccessCode {
     pub value: String,
 }
 
-impl AccessCode {
-    /// Try to create an `AccessCode` from a string.
-    pub fn from_string(value: impl Into<String>) -> Result<Self> {
-        let key: String = value.into();
-        if !Self::has_valid_prefix(&key) || !Self::has_valid_length(&key) {
+impl TryFrom<String> for AccessCode {
+    type Error = Error;
+
+    fn try_from(value: String) -> Result<Self> {
+        if !value.starts_with("access_") || value.len() != 47 {
             return Err(Error::InvalidAccessCode);
         }
-        Ok(AccessCode { value: key })
-    }
 
-    pub fn has_valid_prefix(value: &str) -> bool {
-        value.starts_with("access_")
-    }
-
-    /// Check if access key has a valid length (including prefix)
-    pub fn has_valid_length(value: &str) -> bool {
-        value.len() == 47
+        Ok(AccessCode { value })
     }
 }
 
-#[derive(Debug)]
-pub struct OAuth {
-    /// The API key value.
-    pub refresh_token: String,
+impl Into<String> for AccessCode {
+    fn into(self) -> String {
+        self.value
+    }
+}
 
-    pub access_token: Option<String>,
+impl Display for AccessCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(try_from = "String", into = "String")]
+pub struct ConnectToken {
+    pub value: String,
+}
+
+impl TryFrom<String> for ConnectToken {
+    type Error = Error;
+
+    fn try_from(value: String) -> Result<Self> {
+        if !value.starts_with("access_") || value.len() != 47 {
+            return Err(Error::InvalidAccessCode);
+        }
+
+        Ok(ConnectToken { value })
+    }
+}
+
+impl Into<String> for ConnectToken {
+    fn into(self) -> String {
+        self.value
+    }
+}
+
+pub enum ApiBearerToken {
+    ApiKey(ApiKey),
+    AccessCode(AccessCode),
+    ConnectToken(ConnectToken),
+}
+
+impl ApiBearerToken {
+    pub fn get_token(&self) -> &str {
+        match self {
+            ApiBearerToken::ApiKey(key) => key.value.as_str(),
+            ApiBearerToken::AccessCode(code) => code.value.as_str(),
+            ApiBearerToken::ConnectToken(code) => code.value.as_str(),
+        }
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::auth::AccessCode;
-
-    use super::ApiKey;
+    use super::*;
 
     #[test]
-    fn should_throw_error_if_invalid_api_key() {
-        let key = ApiKey::from_string("inva_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        assert!(key.is_err());
+    fn should_parse_test_api_key() {
+        let result = ApiKey::try_from("test_xxxxxxxxxxxxxxxxxxxxxxxxxxx123".to_string());
+        assert!(result.is_ok(), "Should parse test API keys successfully");
 
-        let key = ApiKey::from_string("test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxy");
-        assert!(key.is_err());
-
-        let key = ApiKey::from_string("live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxy");
-        assert!(key.is_err());
+        let key = result.unwrap();
+        assert_eq!(key.mode, ApiKeyMode::Test);
+        assert_eq!(key.value, "test_xxxxxxxxxxxxxxxxxxxxxxxxxxx123");
     }
 
     #[test]
-    fn should_return_ok_if_valid_api_key() {
-        let test_key = ApiKey::from_string("test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        assert!(test_key.is_ok());
-        let test_key = test_key.unwrap();
-        assert!(&test_key.mode.eq(&super::ApiKeyMode::Test));
-        assert!(&test_key.value.eq("test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"));
+    fn should_parse_live_api_key() {
+        let result = ApiKey::try_from("live_xxxxxxxxxxxxxxxxxxxxxxxxxxx123".to_string());
+        assert!(result.is_ok(), "Should parse live API keys successfully");
 
-        let live_key = ApiKey::from_string("live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        assert!(live_key.is_ok());
-        let live_key = live_key.unwrap();
-        assert!(&live_key.mode.eq(&super::ApiKeyMode::Live));
-        assert!(&live_key.value.eq("live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"));
+        let key = result.unwrap();
+        assert_eq!(key.mode, ApiKeyMode::Live);
+        assert_eq!(key.value, "live_xxxxxxxxxxxxxxxxxxxxxxxxxxx123");
     }
 
     #[test]
-    fn should_return_error_if_invalid_access_code() {
-        let key = AccessCode::from_string("invali_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        assert!(key.is_err());
-
-        let key = AccessCode::from_string("access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxyyyy");
-        assert!(key.is_err());
+    fn should_fail_to_parse_invalid_api_key_mode() {
+        let result = ApiKey::try_from("invalid_xxxxxxxxxxxxxxxxxxxxxxxxxxx123".to_string());
+        assert!(
+            matches!(result, Err(Error::InvalidApiKeyMode)),
+            "Should fail to parse invalid API key mode"
+        );
     }
 
     #[test]
-    fn should_return_ok_if_valud_access_code() {
-        let key = AccessCode::from_string("access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        assert!(key.is_ok());
-        assert!(key.unwrap().value == "access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+    fn should_fail_to_parse_invalid_length_api_key() {
+        let result = ApiKey::try_from("test_xxxxxxxxxxxxxxxxxxxxxxxxxxx".to_string());
+        assert!(
+            matches!(result, Err(Error::InvalidApiKey)),
+            "Should fail to parse invalid length API key"
+        );
+    }
+
+    #[test]
+    fn should_parse_access_code() {
+        let result =
+            AccessCode::try_from("access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx123".to_string());
+        assert!(result.is_ok(), "Should parse access code successfully");
+
+        let code = result.unwrap();
+        assert_eq!(
+            code.value,
+            "access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx123"
+        );
+    }
+
+    #[test]
+    fn should_fail_to_parse_access_code_with_invalid_prefix() {
+        let result =
+            AccessCode::try_from("invali_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx123".to_string());
+        assert!(
+            matches!(result, Err(Error::InvalidAccessCode)),
+            "Should fail to parse invalid access code"
+        );
+    }
+
+    #[test]
+    fn should_fail_to_parse_access_code_with_invalid_length() {
+        let result =
+            AccessCode::try_from("access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx123".to_string());
+        assert!(
+            matches!(result, Err(Error::InvalidAccessCode)),
+            "Should fail to parse invalid access code"
+        );
     }
 }

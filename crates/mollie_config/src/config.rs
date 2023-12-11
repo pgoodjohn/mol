@@ -1,8 +1,8 @@
 use log::debug;
+use mollie_api::auth::{AccessCode, ApiBearerToken, ApiKey};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::auth::{AccessCode, ApiBearerToken, ApiKey, ApiTokenType};
 use crate::error::{ConfigError, ConfigResult};
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
@@ -20,7 +20,7 @@ impl MollieConfig {
         };
 
         if let Some(access_code) = &auth.access_code {
-            return Ok(ApiBearerToken::access_code(&access_code.token.0));
+            return Ok(ApiBearerToken::AccessCode(access_code.token.clone()));
         };
 
         debug!("No access code found in config, trying API keys");
@@ -30,7 +30,7 @@ impl MollieConfig {
             ..
         }) = &auth.api_keys
         {
-            return Ok(ApiBearerToken::api_key(live_api_key.key.as_ref()));
+            return Ok(ApiBearerToken::ApiKey(live_api_key.clone()));
         };
 
         Err(ConfigError::NoAuthenticationMethodSet)
