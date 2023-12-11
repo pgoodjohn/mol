@@ -29,9 +29,15 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install OpenSSL for Ubuntu
+    - name: Install Ubuntu Dependencies
       if: matrix.os == 'ubuntu-latest'
-      run: sudo apt-get update && sudo apt-get install -y libssl-dev
+      run: |
+        sudo apt-get update 
+        sudo apt-get install -y libssl-dev
+        sudo apt-get install -y musl-tools
+        sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+        sudo ln -s /usr/bin/aarch64-linux-gnu-gcc /usr/local/bin/aarch64-linux-musl-gcc
+        sudo ln -s /usr/bin/aarch64-linux-gnu-g++ /usr/local/bin/aarch64-linux-musl-g++
 
     - name: Install Rust toolchain
       uses: actions-rs/toolchain@v1
