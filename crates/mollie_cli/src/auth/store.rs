@@ -7,14 +7,14 @@ pub fn interactive() {
     let new_api_key = ask_api_key().unwrap();
 
     // TODO: Implement access token through interactive command
-    store_api_key(new_api_key);
+    store_api_key(&new_api_key);
 }
 
-pub fn api_key(api_key: &String) {
-    // TODO: use result instead of expect
-    let new_api_key = ApiKey::from_string(String::from(api_key)).expect("Invalid API key");
+pub fn api_key(api_key: &String) -> mollie_api::Result<ApiKey> {
+    let new_api_key = ApiKey::from_string(String::from(api_key))?;
+    store_api_key(&new_api_key);
 
-    store_api_key(new_api_key);
+    Ok(new_api_key)
 }
 
 pub fn access_token(access_token: &String) -> mollie_api::Result<AccessToken> {
@@ -38,16 +38,16 @@ fn store_access_token(access_token: &AccessToken) {
     info!("Configuration updated");
 }
 
-fn store_api_key(new_api_key: ApiKey) {
+fn store_api_key(new_api_key: &ApiKey) {
     let old_config = config::from_file().unwrap();
 
     let mut new_config = old_config.clone();
     match new_api_key.mode {
         ApiKeyMode::Live => {
-            new_config.keys.live = Some(new_api_key.value);
+            new_config.keys.live = Some(new_api_key.value.clone());
         }
         ApiKeyMode::Test => {
-            new_config.keys.test = Some(new_api_key.value);
+            new_config.keys.test = Some(new_api_key.value.clone());
         }
     }
 
