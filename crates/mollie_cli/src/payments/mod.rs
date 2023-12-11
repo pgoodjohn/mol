@@ -99,7 +99,7 @@ pub async fn command(payments_command: &PaymentsCommmand) {
             );
         }
         Some(PaymentsCommands::Get { id }) => {
-            get::command(id);
+            get::command(id).await;
         }
         Some(PaymentsCommands::List { limit, from, profile_id, test_mode }) => {
             list::command(limit, from, profile_id, test_mode).await;

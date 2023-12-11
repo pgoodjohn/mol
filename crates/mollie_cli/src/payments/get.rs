@@ -1,17 +1,13 @@
 use super::mollie;
-use super::mollie::payments::PaymentsApi;
+use mollie_api::Mollie;
 use log::{debug, info};
 
-pub fn command(payment_id: &String) {
+pub async fn command(payment_id: &String) -> anyhow::Result<()>{
     debug!("Running Get API Payment for payment: {}", payment_id);
 
-    let client = mollie::ApiClientBuilder::new()
-        .blocking()
-        .url(super::config::api_url().unwrap())
-        .auth(super::config::get_bearer_token().unwrap())
-        .spawn();
+    let token = super::config::get_bearer_token().unwrap();
 
-    let payment = client.get_payment_details(payment_id).unwrap();
+    let payment = Mollie::build(&token.value).payments().get_by_id(payment_id).await?;
 
     debug!("{:?}", payment);
 
@@ -19,4 +15,6 @@ pub fn command(payment_id: &String) {
         "{} | {} | {} {} | {}",
         payment.id, payment.mode, payment.amount.value, payment.amount.currency, payment.status
     );
+
+    return Ok(());
 }
