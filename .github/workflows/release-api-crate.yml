@@ -1,0 +1,46 @@
+name: Rust Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ctates/mollie_api/**'
+  release:
+    types: [created]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose
+
+  release:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'created'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Change to SDK directory
+        run: cd sdk
+      - name: Publish to Crates.io
+        uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --token ${{ secrets.CRATES_IO_TOKEN }}
