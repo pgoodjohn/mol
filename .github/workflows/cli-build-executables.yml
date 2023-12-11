@@ -1,4 +1,4 @@
-name: Rust Build and Release
+name: Rust Build Executable
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
         include:
           - os: ubuntu-latest
             arch: x86_64
-            target: x86_64-unknown-linux-gnu
+            target: x86_64-unknown-linux-musl
           - os: macos-latest
             arch: x86_64
             target: x86_64-apple-darwin
