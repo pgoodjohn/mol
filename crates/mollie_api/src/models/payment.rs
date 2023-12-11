@@ -8,7 +8,7 @@ use super::{amount::Amount, link::Link};
 /// - <https://docs.mollie.com/reference/v2/organizations-api/get-organization#response>
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Payment {
+pub struct PaymentResource {
     /// Unique identifier of the organization
     pub id: String,
     pub mode: String,
@@ -40,22 +40,22 @@ pub struct Payment {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct PaymentsListResponse {
+pub struct PaymentsListResource {
     pub count: i32,
     #[serde(rename = "_embedded")]
-    pub embedded: PaymentsList,
+    pub embedded: EmbeddedPayments,
     #[serde(rename = "_links")]
     pub links: HashMap<String, Option<Link>>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct PaymentsList {
-    pub payments: Vec<Payment>
+pub struct EmbeddedPayments {
+    pub payments: Vec<PaymentResource>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PaymentCreateRequest {
+pub struct CreatePaymentRequest {
     pub amount: Amount,
     pub description: String,
     pub redirect_url: String,

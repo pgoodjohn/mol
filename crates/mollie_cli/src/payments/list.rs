@@ -11,13 +11,11 @@ pub async fn command(limit: &Option<i32>, from: &Option<String>, profile_id: &Op
     return Ok(());
 }
 
-fn list_payments_from_response(response: mollie_api::models::payment::PaymentsListResponse) {
-    let mut i = 0;
-    for payment in response.embedded.payments {
-        i += 1;
+fn list_payments_from_response(response: mollie_api::models::payment::PaymentsListResource) {
+    response.embedded.payments.iter().enumerate().for_each(|(index, payment)|{
         info!(
             "{:2}. | {} | {} {} | {} | {}",
-            i,
+            index,
             payment.id,
             payment
                 .amount
@@ -27,14 +25,6 @@ fn list_payments_from_response(response: mollie_api::models::payment::PaymentsLi
             payment.status,
             payment.created_at
         );
-    }
+    });
 }
 
-
-//pub async fn command() -> anyhow::Result<()> {
-//    let token = super::config::get_bearer_token().unwrap();
-//   let response = Mollie::build(&token.value).organizations().me().await?;
-//    println!("Organization: {:#?}", response.id);
-//    println!("{:#?}", response);
-//    Ok(())
-//}

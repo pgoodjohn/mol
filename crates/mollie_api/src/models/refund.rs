@@ -13,7 +13,7 @@ pub struct RefundPaymentRequest {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[allow(dead_code)]
-pub struct Refund {
+pub struct RefundResource {
     pub id: String,
     pub amount: Amount,
     pub status: String,

@@ -130,7 +130,6 @@ impl<'a> ApiClient<'a> {
 
         let status = response.status();
         let raw_json = response.json::<ErrorResponse>().await?;
-
         Err(Error::ApiError {
             status: status.as_u16(),
             title: raw_json.title.to_string(),

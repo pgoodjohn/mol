@@ -19,7 +19,7 @@ pub async fn command(
     let redirect_url = String::from(input_redirect_url.unwrap());
     let profile_id = Some(String::from(input_profile_id.unwrap()));
 
-    let create_payment_request = mollie_api::models::payment::PaymentCreateRequest {
+    let create_payment_request = mollie_api::models::payment::CreatePaymentRequest {
         amount: mollie_api::models::amount::Amount {
             value: format!("{:.2}", input_amount.unwrap().parse::<f64>().unwrap()),
             currency,
@@ -59,7 +59,7 @@ pub async fn interactive(debug: &bool) -> anyhow::Result<()> {
     // Webhook (Optional fields [...])
     // Profile ID - prompted only if auth is via access token
     let profile_id = ask_profile_id().unwrap();
-    let create_payment_request = mollie_api::models::payment::PaymentCreateRequest {
+    let create_payment_request = mollie_api::models::payment::CreatePaymentRequest {
         amount: mollie_api::models::amount::Amount {
             currency: amount.currency,
             value: amount.value,
@@ -83,7 +83,7 @@ pub async fn interactive(debug: &bool) -> anyhow::Result<()> {
     return Ok(handle_payment_created_response(payment));
 }
 
-fn handle_payment_created_response(response: mollie_api::models::payment::Payment) {
+fn handle_payment_created_response(response: mollie_api::models::payment::PaymentResource) {
     match response.links.get("checkout") {
         Some(checkout_url) => info!("Pay this payment: {}", checkout_url.href),
         None => warn!("Couldn't find the checkout url!"),
