@@ -52,6 +52,10 @@ pub enum PaymentsCommands {
         limit: Option<i32>,
         #[clap(short, long)]
         from: Option<String>,
+        #[clap(short, long)]
+        profile_id: Option<String>,
+        #[clap(short, long)]
+        test_mode: Option<bool>,
     },
     /// Refund a payment
     #[clap(arg_required_else_help(true))]
@@ -66,7 +70,7 @@ pub enum PaymentsCommands {
     },
 }
 
-pub fn command(payments_command: &PaymentsCommmand) {
+pub async fn command(payments_command: &PaymentsCommmand) {
     match payments_command.command.as_ref() {
         Some(PaymentsCommands::Create {
             debug,
@@ -97,8 +101,8 @@ pub fn command(payments_command: &PaymentsCommmand) {
         Some(PaymentsCommands::Get { id }) => {
             get::command(id);
         }
-        Some(PaymentsCommands::List { limit, from }) => {
-            list::command(limit, from);
+        Some(PaymentsCommands::List { limit, from, profile_id, test_mode }) => {
+            list::command(limit, from, profile_id, test_mode).await;
         }
         Some(PaymentsCommands::Refund {
             id,
