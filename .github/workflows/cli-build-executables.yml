@@ -58,11 +58,21 @@ jobs:
         name: mol-${{ matrix.os }}-${{ matrix.arch }}
         path: target/${{ matrix.target }}/release/mol
 
+  # New job for creating the release and uploading all artifacts
+  create_release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v2
+
     - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          target/${{ matrix.target }}/release/mol
+          mol-ubuntu-latest-x86_64
+          mol-macos-latest-x86_64
+          mol-macos-latest-aarch64
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
