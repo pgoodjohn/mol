@@ -56,18 +56,18 @@ impl ApiKeyMode {
     }
 }
 
-pub struct AccessCode {
+pub struct AccessToken {
     pub value: String,
 }
 
-impl AccessCode {
-    /// Try to create an `AccessCode` from a string.
+impl AccessToken {
+    /// Try to create an `AccessToken` from a string.
     pub fn from_string(value: impl Into<String>) -> Result<Self> {
         let key: String = value.into();
         if !Self::has_valid_prefix(&key) || !Self::has_valid_length(&key) {
-            return Err(Error::InvalidAccessCode);
+            return Err(Error::InvalidAccessToken);
         }
-        Ok(AccessCode { value: key })
+        Ok(AccessToken { value: key })
     }
 
     pub fn has_valid_prefix(value: &str) -> bool {
@@ -82,7 +82,7 @@ impl AccessCode {
 
 #[cfg(test)]
 mod test {
-    use crate::auth::AccessCode;
+    use crate::auth::AccessToken;
 
     use super::ApiKey;
 
@@ -114,17 +114,17 @@ mod test {
     }
 
     #[test]
-    fn should_return_error_if_invalid_access_code() {
-        let key = AccessCode::from_string("invali_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+    fn should_return_error_if_invalid_access_token() {
+        let key = AccessToken::from_string("invali_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
         assert!(key.is_err());
 
-        let key = AccessCode::from_string("access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxyyyy");
+        let key = AccessToken::from_string("access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxyyyy");
         assert!(key.is_err());
     }
 
     #[test]
-    fn should_return_ok_if_valud_access_code() {
-        let key = AccessCode::from_string("access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+    fn should_return_ok_if_valud_access_token() {
+        let key = AccessToken::from_string("access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
         assert!(key.is_ok());
         assert!(key.unwrap().value == "access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
     }

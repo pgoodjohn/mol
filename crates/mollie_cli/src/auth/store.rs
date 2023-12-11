@@ -1,12 +1,12 @@
 use super::config;
 use log::{debug, info};
-use mollie_api::auth::{AccessCode, ApiKey, ApiKeyMode};
+use mollie_api::auth::{AccessToken, ApiKey, ApiKeyMode};
 use requestty::Question;
 
 pub fn interactive() {
     let new_api_key = ask_api_key().unwrap();
 
-    // TODO: Implement access code through interactive command
+    // TODO: Implement access token through interactive command
     store_api_key(new_api_key);
 }
 
@@ -17,19 +17,18 @@ pub fn api_key(api_key: &String) {
     store_api_key(new_api_key);
 }
 
-pub fn access_code(access_code: &String) {
-    // TODO: use result instead of expect
-    let new_access_code =
-        AccessCode::from_string(String::from(access_code)).expect("Invalid access code");
+pub fn access_token(access_token: &String) -> mollie_api::Result<AccessToken> {
+    let new_access_token = AccessToken::from_string(String::from(access_token))?;
+    store_access_token(&new_access_token);
 
-    store_access_token(new_access_code);
+    Ok(new_access_token)
 }
 
-fn store_access_token(new_access_code: AccessCode) {
+fn store_access_token(access_token: &AccessToken) {
     let old_config = config::from_file().unwrap();
 
     let mut new_config = old_config.clone();
-    new_config.access_code = Some(new_access_code.value);
+    new_config.access_token = Some(access_token.value.clone());
 
     debug!("Old config: {:?}", old_config);
     debug!("New config: {:?}", new_config);
