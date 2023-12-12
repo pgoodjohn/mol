@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use config::FigmentConfigurationService;
+use config::{FigmentConfigurationService, ConfigurationService};
 use log::debug;
 
 extern crate jsonxf;
@@ -50,6 +50,8 @@ async fn main() -> miette::Result<()> {
     }
 
     let mut config_service = FigmentConfigurationService::new();
+    let immutable = FigmentConfigurationService::new();
+    config_service.refresh_if_needed(immutable.read());
 
     match cli.command {
         Some(Commands::Auth(command)) => auth::command(&command, &mut config_service).await?,

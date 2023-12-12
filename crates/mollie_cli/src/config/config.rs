@@ -1,4 +1,4 @@
-use chrono::DateTime;
+use chrono::{DateTime, Utc};
 use log::debug;
 use mollie_api::auth::{AccessCode, ApiBearerToken, ApiKey};
 use serde::{Deserialize, Serialize};
@@ -32,6 +32,13 @@ impl MollieConfig {
         if let Some(access_code) = &self.auth.access_code {
             return Ok(ApiBearerToken::AccessCode(access_code.token.clone()));
         };
+
+        match &self.auth.connect {
+            Some(connect) if connect.is_valid() => {
+                return Ok(ApiBearerToken::ConnectToken(mollie_api::auth::ConnectToken { value: connect.clone().access_token.unwrap().to_owned() }))
+            },
+            _ => ()
+        }
 
         debug!("No access code found in config, trying API keys");
 
@@ -78,6 +85,22 @@ pub struct ConnectConfig {
     pub refresh_token: Option<String>,
     pub access_token: Option<String>,
     pub expires_at: Option<DateTime<chrono::Utc>>,
+}
+
+impl ConnectConfig {
+    pub(crate) fn is_expired(&self) -> bool {
+        match self.expires_at {
+            Some(expires_at) => Utc::now() > expires_at,
+            _ => false,
+        }
+    }
+
+    pub fn is_valid(&self) -> bool {
+        match &self.access_token {
+            Some(_) => return !self.is_expired(),
+            None => false,
+        }
+    }
 }
 
 fn default_api_config() -> ApiConfig {

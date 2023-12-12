@@ -6,7 +6,6 @@ use mollie_api::auth::{AccessCode, ApiKey};
 use oauth2::{basic::BasicClient, ClientId, AuthUrl, TokenUrl, ClientSecret, AuthorizationCode, reqwest::async_http_client, CsrfToken, Scope, TokenResponse};
 use url::Url;
 
-mod oauth;
 mod store;
 
 #[derive(Parser)]
@@ -81,6 +80,7 @@ pub async fn command(
             info!("Live API Key: {:?}", config.live_api_key());
             info!("Test API Key: {:?}", config.test_api_key());
             info!("Access Token: {:?}", config.access_code());
+            info!("Connect: {:?}", config.bearer_token());
         }
         Some(AuthCommands::Connect { client_id, client_secret, finish }) => {
             let client =
