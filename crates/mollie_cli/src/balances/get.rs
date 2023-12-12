@@ -9,7 +9,8 @@ pub async fn command(
     config: &MollieConfig,
     balance_id: &String,
     with_response: bool,
-) -> anyhow::Result<()> {
+) -> miette::Result<()> {
+
     debug!("Running Get API Balance for balance: {}", balance_id);
     let token = config.bearer_token()?;
     let balance = Mollie::build(token.as_str())

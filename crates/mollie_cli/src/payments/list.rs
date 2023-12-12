@@ -14,7 +14,7 @@ pub async fn command(
     test_mode: &Option<bool>,
     with_response: bool,
     status: &Option<Status>,
-) -> anyhow::Result<()> {
+) -> miette::Result<()> {
     debug!("Listing 10 Payments");
     let token = config.bearer_token()?;
     let response = Mollie::build(&token.as_str())

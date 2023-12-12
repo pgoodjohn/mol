@@ -36,7 +36,7 @@ pub enum AuthCommands {
 pub async fn command(
     command: &AuthCommand,
     config_service: &mut dyn ConfigurationService,
-) -> anyhow::Result<()> {
+) -> miette::Result<()> {
     match command.command.as_ref() {
         Some(AuthCommands::Add {
             interactive,

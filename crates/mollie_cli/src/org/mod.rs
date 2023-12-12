@@ -30,7 +30,7 @@ pub enum OrgCommands {
 pub async fn command(
     command: &OrgCommand,
     config_service: &dyn ConfigurationService,
-) -> anyhow::Result<()> {
+) -> miette::Result<()> {
     let config = config_service.read();
     match command.command.as_ref() {
         Some(OrgCommands::Permissions { granted }) => {

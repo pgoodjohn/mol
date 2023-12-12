@@ -9,7 +9,7 @@ pub async fn command(
     config: &MollieConfig,
     payment_id: &String,
     with_response: bool,
-) -> anyhow::Result<()> {
+) -> miette::Result<()> {
     debug!("Running Cancel API Payment for paymner: {}", payment_id);
 
     let token = config.bearer_token()?;

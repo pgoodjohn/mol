@@ -39,7 +39,7 @@ pub enum BalanceCommands {
 pub async fn command(
     command: &BalancesCommand,
     config_service: &dyn ConfigurationService,
-) -> anyhow::Result<()> {
+) -> miette::Result<()> {
     let config = config_service.read();
     match command.command.as_ref() {
         Some(BalanceCommands::Get { id }) => get::command(config, id, command.with_response).await,

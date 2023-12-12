@@ -8,7 +8,7 @@ pub async fn command(
     amount: &f32,
     description: &String,
     with_response: bool,
-) -> anyhow::Result<()> {
+) -> miette::Result<()> {
     let request = mollie_api::models::refund::RefundPaymentRequest {
         amount: mollie_api::models::amount::Amount {
             value: format!("{:.2}", amount),

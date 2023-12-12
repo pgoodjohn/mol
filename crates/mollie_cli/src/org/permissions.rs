@@ -9,8 +9,8 @@ pub async fn command(
     config: &MollieConfig,
     filter_granted: &bool,
     with_response: bool,
-) -> anyhow::Result<()> {
-    let permissions = Mollie::build(&config.bearer_token().unwrap().as_str())
+) -> miette::Result<()> {
+    let permissions = Mollie::build(&config.bearer_token()?.as_str())
         .permissions()
         .list()
         .await?;

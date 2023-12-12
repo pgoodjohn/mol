@@ -13,7 +13,7 @@ pub async fn command(
     input_redirect_url: Option<&String>,
     input_profile_id: Option<&String>,
     debug: &bool,
-) -> anyhow::Result<()> {
+) -> miette::Result<()> {
     debug!("Running Create Payment Command");
     let currency = String::from(input_currency.unwrap());
     let description = String::from(input_description.unwrap());
@@ -51,7 +51,7 @@ pub async fn command(
     return Ok(());
 }
 
-pub async fn interactive(config: &MollieConfig, debug: &bool) -> anyhow::Result<()> {
+pub async fn interactive(config: &MollieConfig, debug: &bool) -> miette::Result<()> {
     debug!("Running interactive Create Payment Command");
 
     // Currency

@@ -1,9 +1,9 @@
+use std::fmt::Display;
+
 use crate::config::ConfigurationService;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use mollie_api::models::payment::PaymentResource;
-use std::fmt::Display;
-use strum::Display;
 mod cancel;
 mod create;
 mod get;
@@ -95,7 +95,7 @@ pub enum PaymentsCommands {
 pub async fn command(
     payments_command: &PaymentsCommmand,
     config_service: &dyn ConfigurationService,
-) -> anyhow::Result<()> {
+) -> miette::Result<()> {
     let config = config_service.read();
     match payments_command.command.as_ref() {
         Some(PaymentsCommands::Create {
@@ -184,7 +184,6 @@ impl Payment {
         format!(
             "|{:^14} {:^8} {:^4} {:^12} {:^26} {:^30} {} |",
             "ID", "STATUS", "MODE", "AMOUNT", "CREATED_AT", "DESCITPION", "REDIRECT_URL"
-        )
     }
 }
 

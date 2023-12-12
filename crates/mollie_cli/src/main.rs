@@ -40,7 +40,7 @@ enum Commands {
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> miette::Result<()> {
     let cli = Cli::parse();
 
     logger::init(cli.debug);
