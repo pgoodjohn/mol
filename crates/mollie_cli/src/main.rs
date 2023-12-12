@@ -2,6 +2,8 @@ use clap::{Parser, Subcommand};
 use config::FigmentConfigurationService;
 use log::debug;
 
+extern crate jsonxf;
+
 mod auth;
 mod balances;
 mod config;
@@ -11,6 +13,7 @@ mod mollie;
 mod org;
 mod payments;
 
+
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
 struct Cli {
@@ -19,6 +22,9 @@ struct Cli {
 
     #[clap(short, long, global = true)]
     debug: bool,
+
+    #[clap(long = "withResponse", global = true)]
+    with_response: bool
 }
 
 #[derive(Subcommand)]
