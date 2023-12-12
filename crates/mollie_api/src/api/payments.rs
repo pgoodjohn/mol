@@ -55,4 +55,10 @@ impl<'client> PaymentsApi<'client> {
         
         self.api_client.post(&endpoint, body).await
     }
+
+    /// [Cancel Payment](https://docs.mollie.com/reference/v2/payments-api/cancel-payment)
+    pub async fn cancel(&self, id: &str) -> crate::Result<PaymentResource> {
+        let endpoint = format!("/payments/{}", id);
+        self.api_client.delete(&endpoint, None).await
+    }
 }

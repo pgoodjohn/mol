@@ -7,6 +7,7 @@ mod create;
 mod get;
 mod list;
 mod refund;
+mod cancel;
 
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
@@ -68,6 +69,12 @@ pub enum PaymentsCommands {
         #[clap(long)]
         description: String,
     },
+
+    ///Cancel a Payment
+    #[clap(arg_required_else_help(true))]
+    Cancel {
+        id: String
+    }
 }
 
 pub async fn command(payments_command: &PaymentsCommmand) {
@@ -110,6 +117,11 @@ pub async fn command(payments_command: &PaymentsCommmand) {
             description,
         }) => {
             refund::command(id, amount, description).await;
+        }
+        Some(PaymentsCommands::Cancel {
+            id
+        }) => {
+            cancel::command(id).await;
         }
         None => {}
     }

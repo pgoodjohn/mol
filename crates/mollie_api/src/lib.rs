@@ -115,6 +115,21 @@ impl<'a> ApiClient<'a> {
         self.parse_response(response).await
     }
 
+    /// Performa a delete request using default headers and auth token
+    pub async fn delete<R>(&self, endpoint: &str, query: Option<HashMap<&str, String>>) -> Result<R>
+    where
+        R: for<'de> Deserialize<'de>
+    {
+        let url = self.build_url(endpoint);
+        let mut req = self.client.delete(url).bearer_auth(self.auth_token);
+
+        if let Some(q) = query {
+            req = req.query(&q);
+        }
+        let response = req.send().await?;
+        self.parse_response(response).await
+    }
+
     async fn parse_response<R>(&self, response: reqwest::Response) -> Result<R>
     where
         R: for<'de> Deserialize<'de>,
