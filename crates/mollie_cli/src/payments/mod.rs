@@ -17,6 +17,9 @@ pub struct PaymentsCommmand {
     #[clap(short, long, global = true)]
     debug: bool,
 
+    #[clap(long = "withResponse", global = true)]
+    with_response: bool,
+
     #[clap(subcommand)]
     command: Option<PaymentsCommands>,
 }
@@ -113,7 +116,7 @@ pub async fn command(
             .await?;
         }
         Some(PaymentsCommands::Get { id }) => {
-            get::command(config, id).await?;
+            get::command(config, id, payments_command.with_response).await?;
         }
         Some(PaymentsCommands::List {
             limit,
@@ -121,19 +124,19 @@ pub async fn command(
             profile_id,
             test_mode,
         }) => {
-            list::command(config, limit, from, profile_id, test_mode).await?;
+            list::command(config, limit, from, profile_id, test_mode, payments_command.with_response).await?;
         }
         Some(PaymentsCommands::Refund {
             id,
             amount,
             description,
         }) => {
-            refund::command(config, id, amount, description).await?;
+            refund::command(config, id, amount, description, payments_command.with_response ).await?;
         }
         Some(PaymentsCommands::Cancel {
             id
         }) => {
-            cancel::command(config, id).await?;
+            cancel::command(config, id, payments_command.with_response).await?;
         }
         None => {}
     }

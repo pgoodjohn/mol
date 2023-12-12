@@ -10,7 +10,7 @@ pub struct RefundPaymentRequest {
     pub description: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[allow(dead_code)]
 pub struct RefundResource {

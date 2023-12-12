@@ -5,7 +5,7 @@ use super::{amount::Amount, link::Link};
 
 /// Organization model; More information:
 /// - <https://docs.mollie.com/reference/v2/organizations-api/get-organization#response>
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PaymentResource {
     /// Unique identifier of the organization
@@ -38,7 +38,7 @@ pub struct PaymentResource {
     pub links: HashMap<String, Link>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct PaymentsListResource {
     pub count: i32,
     #[serde(rename = "_embedded")]
@@ -47,7 +47,7 @@ pub struct PaymentsListResource {
     pub links: HashMap<String, Option<Link>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct EmbeddedPayments {
     pub payments: Vec<PaymentResource>
 }
