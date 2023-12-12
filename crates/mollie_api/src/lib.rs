@@ -193,4 +193,14 @@ mod client_tests {
 
         assert_eq!(expected_organization_id, organization_response.id);
     }
+
+    #[tokio::test]
+    async fn test_balances_api_authorizes() {
+        let auth_token = std::env::var("MOLLIE_ACCESS_TOKEN").expect("Please set a valid access token");
+        let client = Mollie::build(&auth_token);
+
+        let balances_response = client.balances().list(None, &None).await.unwrap();
+
+        assert_eq!(1, balances_response.count);
+    }
 }
