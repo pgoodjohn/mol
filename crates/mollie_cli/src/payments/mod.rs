@@ -171,7 +171,7 @@ pub struct Payment {
 
 impl Payment {
     pub fn header() -> String {
-        format!("|{:^14} {:^4} {:^12} {:^26} {:^30} {} |", "ID", "MODE", "AMOUNT", "CREATED_AT", "DESCITPION", "REDIRECT_URL")
+        format!("|{:^14} {:^8} {:^4} {:^12} {:^26} {:^30} {} |", "ID", "STATUS", "MODE", "AMOUNT", "CREATED_AT", "DESCITPION", "REDIRECT_URL")
     }
 }
 
@@ -193,8 +193,27 @@ impl Display for Payment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} | {} | {} | {} | {} | {}  ",
-            if self.status == "paid" { Colorize::green(&*self.id) } else { Colorize::blink(&*self.id) },
+            "{} | {} | {} | {} | {} | {} | {}  ",
+            match self.status.as_str() {
+                "open" => { Colorize::blue(&*self.id) },
+                "cancelled" => { Colorize::yellow(&*self.id) },
+                "pending" => { Colorize::blue(&*self.id) },
+                "authorized" => { Colorize::blue(&*self.id) }, 
+                "expired" => { Colorize::yellow(&*self.id) }, 
+                "failed" => { Colorize::red(&*self.id) }, 
+                "paid" => { Colorize::green(&*self.id) },
+                &_ => {Colorize::blink(&*self.id)},
+            },
+            match self.status.as_str() {
+                "open" => { Colorize::blue(&*self.status) },
+                "cancelled" => { Colorize::yellow(&*self.status) },
+                "pending" => { Colorize::blue(&*self.status) },
+                "authorized" => { Colorize::blue(&*self.status) }, 
+                "expired" => { Colorize::yellow(&*self.status) }, 
+                "failed" => { Colorize::red(&*self.status) }, 
+                "paid" => { Colorize::green(&*self.status) },
+                &_ => {Colorize::blink(&*self.status)},
+            },
             if self.mode == "live" { Colorize::bright_green("LIVE") } else { Colorize::bright_black("TEST") },
             Colorize::green(&*self.amount.to_string()),
             Colorize::blue(&*self.created_at),
