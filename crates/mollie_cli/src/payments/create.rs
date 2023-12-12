@@ -1,12 +1,13 @@
-use super::config;
 use super::console;
 use super::mollie;
 use super::mollie::payments::PaymentsApi;
+use crate::config::MollieConfig;
 use log::{debug, info, warn};
 use requestty::Question;
 use serde::Serialize;
 
 pub fn command(
+    config: &MollieConfig,
     input_currency: Option<&String>,
     input_amount: Option<&String>,
     input_description: Option<&String>,
@@ -38,8 +39,8 @@ pub fn command(
 
     let client = mollie::ApiClientBuilder::new()
         .blocking()
-        .url(super::config::api_url().unwrap())
-        .auth(super::config::get_bearer_token().unwrap())
+        .url(config.api.url.to_string())
+        .auth(config.bearer_token().unwrap())
         .spawn();
 
     match client.create_payment(create_payment_request) {
@@ -48,7 +49,7 @@ pub fn command(
     }
 }
 
-pub fn interactive(debug: &bool) {
+pub fn interactive(config: &MollieConfig, debug: &bool) {
     debug!("Running interactive Create Payment Command");
 
     // Currency
@@ -61,7 +62,7 @@ pub fn interactive(debug: &bool) {
     let redirect_url = ask_redirect_url().unwrap();
     // Webhook (Optional fields [...])
     // Profile ID - prompted only if auth is via access code
-    let profile_id = ask_profile_id().unwrap();
+    let profile_id = ask_profile_id(config).unwrap();
     let create_payment_request = super::mollie::payments::CreatePaymentRequest {
         amount: super::mollie::payments::Amount {
             currency: amount.currency,
@@ -80,8 +81,8 @@ pub fn interactive(debug: &bool) {
 
     let client = mollie::ApiClientBuilder::new()
         .blocking()
-        .url(super::config::api_url().unwrap())
-        .auth(super::config::get_bearer_token().unwrap())
+        .url(config.api.url.to_string())
+        .auth(config.bearer_token().unwrap())
         .spawn();
 
     match client.create_payment(create_payment_request) {
@@ -220,14 +221,9 @@ fn ask_redirect_url() -> Result<String, SorryCouldNotCreatePayment> {
     }
 }
 
-fn ask_profile_id() -> Result<Option<String>, SorryCouldNotCreatePayment> {
-    match config::access_code() {
-        Ok(_) => {
-            // found access code, continue
-        }
-        Err(_) => {
-            return Ok(None);
-        }
+fn ask_profile_id(config: &MollieConfig) -> Result<Option<String>, SorryCouldNotCreatePayment> {
+    if !config.auth.access_code.is_some() {
+        return Ok(None);
     }
 
     let question = Question::input("profile_id")

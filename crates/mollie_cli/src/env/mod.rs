@@ -1,9 +1,8 @@
-use super::config;
+use crate::config::ConfigurationService;
 use clap::{Parser, Subcommand};
 use log::info;
+use reqwest::Url;
 use strum::EnumString;
-
-mod update_environment;
 
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(false))]
@@ -32,17 +31,27 @@ pub enum Environments {
     Dev,
 }
 
-pub fn command(command: &EnvCommand) {
+pub fn command(
+    command: &EnvCommand,
+    config_service: &mut dyn ConfigurationService,
+) -> anyhow::Result<()> {
     match command.command.as_ref() {
         Some(EnvCommands::Url { environment }) => {
-            update_environment::set_environment(environment);
+            config_service.update(&|config| {
+                config.api.url = match environment {
+                    Environments::Dev => Url::parse("https://api.mollie.dev").unwrap(),
+                    Environments::Prod => Url::parse("https://api.mollie.com").unwrap(),
+                };
+            })?;
         }
         None => {
+            let config = config_service.read();
             info!(
                 "Your mol-cli is configured to talk to: {}",
-                config::api_url().unwrap()
+                config.api.url.as_str()
             );
             info!("To switch your configuration, run 'mol env url prod' or 'mol env url dev'")
         }
     }
+    Ok(())
 }

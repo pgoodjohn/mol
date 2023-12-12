@@ -1,5 +1,4 @@
-use crate::config::MollieConfig;
-use crate::error::ConfigResult;
+use crate::config::error::ConfigResult;
 use figment::{
     providers::{Env, Format, Toml},
     Figment,
@@ -8,14 +7,14 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
-pub use config::*;
+pub use crate::config::config::*;
 
 mod config;
 mod error;
 
 pub trait ConfigurationService {
     fn read(&self) -> &MollieConfig;
-    fn update(&mut self, updater: impl FnOnce(&mut MollieConfig)) -> ConfigResult<MollieConfig>;
+    fn update(&mut self, updater: &dyn Fn(&mut MollieConfig)) -> ConfigResult<MollieConfig>;
 }
 
 pub struct FigmentConfigurationService {
@@ -55,7 +54,7 @@ impl ConfigurationService for FigmentConfigurationService {
         })
     }
 
-    fn update(&mut self, updater: impl FnOnce(&mut MollieConfig)) -> ConfigResult<MollieConfig> {
+    fn update(&mut self, updater: &dyn Fn(&mut MollieConfig)) -> ConfigResult<MollieConfig> {
         let mut config = self.read().clone();
         updater(&mut config);
 
@@ -70,6 +69,7 @@ impl ConfigurationService for FigmentConfigurationService {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::Commands::Auth;
     use mollie_api::auth;
     use url::Url;
 
@@ -103,17 +103,17 @@ mod test {
             assert_eq!(
                 config,
                 &MollieConfig {
-                    api: config::ApiConfig {
+                    api: ApiConfig {
                         url: Url::parse("https://test.com/").unwrap(),
                     },
-                    auth: Some(config::AuthConfig {
-                        access_code: Some(config::AccessCodeConfig {
+                    auth: AuthConfig {
+                        access_code: Some(AccessCodeConfig {
                             token: auth::AccessCode {
                                 value: "access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx123"
                                     .to_string()
                             },
                         }),
-                        api_keys: Some(config::ApiKeysConfig {
+                        api_keys: Some(ApiKeysConfig {
                             live: Some(auth::ApiKey {
                                 mode: auth::ApiKeyMode::Live,
                                 value: "live_xxxxxxxxxxxxxxxxxxxxxxxxxxx123".to_string(),
@@ -123,13 +123,13 @@ mod test {
                                 value: "test_xxxxxxxxxxxxxxxxxxxxxxxxxxx456".to_string(),
                             }),
                         }),
-                        connect: Some(config::ConnectConfig {
+                        connect: Some(ConnectConfig {
                             client_id: "client_id".to_string(),
                             client_secret: "client_secret".to_string(),
                             refresh_token: Some("refresh_token".to_string()),
                             access_token: Some("access_token".to_string()),
                         }),
-                    }),
+                    },
                 }
             );
 
@@ -156,10 +156,10 @@ mod test {
             assert_eq!(
                 config,
                 &MollieConfig {
-                    api: config::ApiConfig {
+                    api: ApiConfig {
                         url: Url::parse("https://env.com/").unwrap(),
                     },
-                    auth: None,
+                    auth: AuthConfig::default(),
                 }
             );
 

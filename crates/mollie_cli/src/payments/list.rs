@@ -1,16 +1,18 @@
+use crate::config::MollieConfig;
+
 use super::console;
 use super::mollie;
 use super::mollie::payments::PaymentsApi;
 use log::{debug, info};
 use pad::{Alignment, PadStr};
 
-pub fn command(limit: &Option<i32>, from: &Option<String>) {
+pub fn command(config: &MollieConfig, limit: &Option<i32>, from: &Option<String>) {
     debug!("Listing 10 Payments");
 
     let client = mollie::ApiClientBuilder::new()
         .blocking()
-        .url(super::config::api_url().unwrap())
-        .auth(super::config::get_bearer_token().unwrap())
+        .url(config.api.url.to_string())
+        .auth(config.bearer_token().unwrap())
         .spawn();
 
     let response = client.list_payments(*limit, from);

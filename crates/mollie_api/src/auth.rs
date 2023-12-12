@@ -119,6 +119,7 @@ impl Into<String> for ConnectToken {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum ApiBearerToken {
     ApiKey(ApiKey),
     AccessCode(AccessCode),

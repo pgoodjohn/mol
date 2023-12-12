@@ -1,6 +1,6 @@
-use super::config;
 use super::console;
 use super::mollie;
+use crate::config::ConfigurationService;
 use clap::{Parser, Subcommand};
 
 mod create;
@@ -66,7 +66,8 @@ pub enum PaymentsCommands {
     },
 }
 
-pub fn command(payments_command: &PaymentsCommmand) {
+pub fn command(payments_command: &PaymentsCommmand, config_service: &dyn ConfigurationService) {
+    let config = config_service.read();
     match payments_command.command.as_ref() {
         Some(PaymentsCommands::Create {
             debug,
@@ -79,13 +80,14 @@ pub fn command(payments_command: &PaymentsCommmand) {
         }) => {
             match interactive {
                 true => {
-                    create::interactive(debug);
+                    create::interactive(config, debug);
                     return;
                 }
                 false => {}
             }
 
             create::command(
+                config,
                 currency.as_ref(),
                 amount.as_ref(),
                 description.as_ref(),
@@ -95,17 +97,17 @@ pub fn command(payments_command: &PaymentsCommmand) {
             );
         }
         Some(PaymentsCommands::Get { id }) => {
-            get::command(id);
+            get::command(config, id);
         }
         Some(PaymentsCommands::List { limit, from }) => {
-            list::command(limit, from);
+            list::command(config, limit, from);
         }
         Some(PaymentsCommands::Refund {
             id,
             amount,
             description,
         }) => {
-            refund::command(id, amount, description);
+            refund::command(config, id, amount, description);
         }
         None => {}
     }

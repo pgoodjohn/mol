@@ -1,4 +1,5 @@
 use log::debug;
+use mollie_api::auth::ApiBearerToken;
 use reqwest::StatusCode;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -34,7 +35,7 @@ pub trait Permissions {
     fn get_permissions(&self) -> Result<PermissionsResponse, super::errors::ApiClientError> {
         let auth_token = self.get_authentication_method();
         debug!("{:?}", &auth_token);
-        if auth_token.token_type != super::ApiTokenTypes::AccessCode {
+        if !matches!(auth_token, ApiBearerToken::AccessCode(..)) {
             return Err(
                 super::errors::ApiClientError::CouldNotFindValidAuthorizationMethodToPerformRequest(
                 ),
@@ -74,6 +75,6 @@ impl Permissions for super::ApiClient {
         self.get(url, parameter, query)
     }
     fn get_authentication_method(&self) -> super::ApiBearerToken {
-        super::get_bearer_token_from_config().unwrap()
+        self.auth_token.clone()
     }
 }

@@ -9,7 +9,6 @@ repository.workspace = true
 
 [dependencies]
 mollie_api = { path = "../mollie_api" }
-mollie_config = { path = "../mollie_config" }
 log = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -22,6 +21,9 @@ requestty = "0.5"
 toml = "0.8"
 dirs = "5.0"
 strum = { version = "0.25", features = ["derive"] }
+openssl = { version = "0.10.61", features = ["vendored"] }
+figment = { version = "0.10", features = ["toml", "env", "test"] }
+url = { version = "2", features = ["serde"] }
 
 env_logger = { version = "0.10" }
 pad = { version = "0.1"}

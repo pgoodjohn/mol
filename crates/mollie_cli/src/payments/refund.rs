@@ -1,9 +1,11 @@
+use crate::config::MollieConfig;
+
 use super::console;
 use super::mollie::refunds;
 use super::mollie::refunds::RefundsApi;
 use log::info;
 
-pub fn command(payment_id: &String, amount: &f32, description: &String) {
+pub fn command(config: &MollieConfig, payment_id: &String, amount: &f32, description: &String) {
     let request = refunds::RefundPaymentRequest {
         amount: refunds::Amount {
             value: format!("{:.2}", amount),
@@ -12,7 +14,7 @@ pub fn command(payment_id: &String, amount: &f32, description: &String) {
         description: String::from(description),
     };
 
-    let client = super::mollie::ApiClient::new();
+    let client = super::mollie::ApiClient::new(config);
 
     match client.refund_payment(String::from(payment_id), request) {
         Ok(response) => {
