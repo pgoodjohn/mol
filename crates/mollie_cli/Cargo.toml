@@ -23,6 +23,7 @@ toml = "0.8"
 dirs = "5.0"
 strum = { version = "0.25", features = ["derive"] }
 openssl = { version = "0.10.61", features = ["vendored"] }
+colored = "2.1.0"
 
 env_logger = { version = "0.10" }
 pad = { version = "0.1"}

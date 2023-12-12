@@ -1,4 +1,3 @@
-use std::fmt::Display;
 use serde::Deserialize;
 use crate::models::amount::Amount;
 
@@ -14,7 +13,7 @@ pub struct EmbeddedBalanceResource {
     pub balances: Vec<BalanceResource>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BalanceResource {
     pub id: String,
@@ -30,21 +29,7 @@ pub struct BalanceResource {
     pub transfer_destination: TransferDestination,
 }
 
-impl Display for BalanceResource {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "[{}] {} | {} | {} | {}",
-            self.status,
-            self.id,
-            self.available_amount.to_string(),
-            self.pending_amount.to_string(),
-            self.mode,
-        )
-    }
-}
-
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransferDestination {
     #[serde(rename = "type")]
