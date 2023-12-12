@@ -5,6 +5,7 @@ use crate::config::ConfigurationService;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use mollie_api::models::payment::PaymentResource;
+use strum::Display;
 mod create;
 mod get;
 mod list;
@@ -22,6 +23,17 @@ pub struct PaymentsCommmand {
 
     #[clap(subcommand)]
     command: Option<PaymentsCommands>,
+}
+
+#[derive(clap::ValueEnum, Clone, Display)]
+pub enum Status {
+    Open,
+    Canceled,
+    Pending,
+    Authorized,
+    Expired,
+    Failed,
+    Paid,
 }
 
 #[derive(Subcommand)]
@@ -62,6 +74,8 @@ pub enum PaymentsCommands {
         profile_id: Option<String>,
         #[clap(short, long)]
         test_mode: Option<bool>,
+        #[clap(short, long)]
+        status: Option<Status>
     },
     /// Refund a payment
     #[clap(arg_required_else_help(true))]
@@ -123,8 +137,9 @@ pub async fn command(
             from,
             profile_id,
             test_mode,
+            status,
         }) => {
-            list::command(config, limit, from, profile_id, test_mode, payments_command.with_response).await?;
+            list::command(config, limit, from, profile_id, test_mode, payments_command.with_response, status).await?;
         }
         Some(PaymentsCommands::Refund {
             id,
@@ -179,7 +194,7 @@ impl Display for Payment {
         write!(
             f,
             "{} | {} | {} | {} | {} | {}  ",
-            if self.status == "active" { Colorize::green(&*self.id) } else { Colorize::blink(&*self.id) },
+            if self.status == "paid" { Colorize::green(&*self.id) } else { Colorize::blink(&*self.id) },
             if self.mode == "live" { Colorize::bright_green("LIVE") } else { Colorize::bright_black("TEST") },
             Colorize::green(&*self.amount.to_string()),
             Colorize::blue(&*self.created_at),
