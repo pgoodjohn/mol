@@ -45,12 +45,17 @@ impl FigmentConfigurationService {
 impl ConfigurationService for FigmentConfigurationService {
     fn read(&self) -> &MollieConfig {
         self.config.get_or_init(|| {
-            let figment = Figment::new()
-                .merge(Toml::file("conf.toml"))
-                .merge(Toml::file(Self::config_path()))
-                .merge(Env::prefixed("MOLLIE_").split("_"));
+            // Figment's test mode can only read config files from the current working directory.
+            let figment = if cfg!(test) {
+                Figment::new().merge(Toml::file("conf.toml"))
+            } else {
+                Figment::new().merge(Toml::file(Self::config_path()))
+            };
 
-            figment.extract::<MollieConfig>().unwrap()
+            figment
+                .merge(Env::prefixed("MOLLIE_").split("__"))
+                .extract::<MollieConfig>()
+                .unwrap()
         })
     }
 
@@ -58,8 +63,13 @@ impl ConfigurationService for FigmentConfigurationService {
         let mut config = self.read().clone();
         updater(&mut config);
 
+        let path = Self::config_path();
         let new_config = toml::to_string_pretty(&config)?;
-        fs::write(Self::config_path(), new_config)?;
+
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::write(&path, new_config)?;
         self.config.take();
 
         Ok(config)
@@ -69,7 +79,6 @@ impl ConfigurationService for FigmentConfigurationService {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::Commands::Auth;
     use mollie_api::auth;
     use url::Url;
 
@@ -148,7 +157,15 @@ mod test {
                 "#,
             )?;
 
-            jail.set_env("MOLLIE_API_URL", "https://env.com/");
+            jail.set_env("MOLLIE_API__URL", "https://env.com/");
+            jail.set_env(
+                "MOLLIE_AUTH__ACCESS_CODE__TOKEN",
+                "access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx123",
+            );
+            jail.set_env(
+                "MOLLIE_AUTH__API_KEYS__LIVE",
+                "live_xxxxxxxxxxxxxxxxxxxxxxxxxxx123",
+            );
 
             let service = FigmentConfigurationService::new();
             let config = service.read();
@@ -159,7 +176,22 @@ mod test {
                     api: ApiConfig {
                         url: Url::parse("https://env.com/").unwrap(),
                     },
-                    auth: AuthConfig::default(),
+                    auth: AuthConfig {
+                        api_keys: Some(ApiKeysConfig {
+                            live: Some(auth::ApiKey {
+                                mode: auth::ApiKeyMode::Live,
+                                value: "live_xxxxxxxxxxxxxxxxxxxxxxxxxxx123".to_string(),
+                            }),
+                            test: None,
+                        }),
+                        access_code: Some(AccessCodeConfig {
+                            token: auth::AccessCode {
+                                value: "access_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx123"
+                                    .to_string()
+                            },
+                        }),
+                        connect: None,
+                    }
                 }
             );
 
