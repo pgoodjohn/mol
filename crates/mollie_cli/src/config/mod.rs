@@ -74,7 +74,7 @@ impl FigmentConfigurationService {
         };
 
         miette!(
-            code = "config:load",
+            code = "config::load",
             severity = miette::Severity::Error,
             help = help,
             "{}",

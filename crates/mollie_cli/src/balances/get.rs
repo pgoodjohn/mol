@@ -1,11 +1,15 @@
+use crate::balances::Balance;
+use crate::config::MollieConfig;
 use colored::Colorize;
 use colored_json::ToColoredJson;
 use log::{debug, info};
 use mollie_api::Mollie;
-use crate::balances::Balance;
-use crate::config::MollieConfig;
 
-pub async fn command(config: &MollieConfig, balance_id: &String, with_response: bool) -> anyhow::Result<()> {
+pub async fn command(
+    config: &MollieConfig,
+    balance_id: &String,
+    with_response: bool,
+) -> miette::Result<()> {
     debug!("Running Get API Balance for balance: {}", balance_id);
     let token = config.bearer_token()?;
     let balance = Mollie::build(token.as_str())
