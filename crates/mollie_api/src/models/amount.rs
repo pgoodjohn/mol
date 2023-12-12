@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Amount {
     pub value: String,
     pub currency: String,
