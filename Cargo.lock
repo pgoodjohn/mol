@@ -261,7 +261,7 @@ checksum = "79cff32df5cfea75e6484eeff0b4e48ad3977fb6582676a7862b3590dddc7a87"
 dependencies = [
  "serde",
  "serde_json",
- "yansi",
+ "yansi 0.5.1",
 ]
 
 [[package]]
@@ -798,8 +798,8 @@ dependencies = [
  "colored_json",
  "dirs",
  "env_logger",
- "jsonxf",
  "figment",
+ "jsonxf",
  "log",
  "mollie_api",
  "openssl",
@@ -969,7 +969,7 @@ checksum = "61a386cd715229d399604b50d1361683fe687066f42d56f54be995bc6868f71c"
 dependencies = [
  "inlinable_string",
  "pear_codegen",
- "yansi",
+ "yansi 1.0.0-rc.1",
 ]
 
 [[package]]
@@ -1027,7 +1027,7 @@ dependencies = [
  "quote",
  "syn",
  "version_check",
- "yansi",
+ "yansi 1.0.0-rc.1",
 ]
 
 [[package]]
@@ -1990,6 +1990,12 @@ name = "winsplit"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3ab703352da6a72f35c39a533526393725640575bb211f61987a2748323ad956"
+
+[[package]]
+name = "yansi"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09041cd90cf85f7f8b2df60c646f853b7f535ce68f85244eb6731cf89fa498ec"
 
 [[package]]
 name = "yansi"
