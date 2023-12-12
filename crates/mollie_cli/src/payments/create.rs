@@ -92,7 +92,10 @@ pub fn interactive(debug: &bool) {
 
 fn handle_payment_created_response(response: super::mollie::payments::PaymentResource) {
     match response.links.get("checkout") {
-        Some(checkout_url) => info!("Pay this payment: {}", checkout_url.href),
+        Some(checkout_url) => {
+            info!("Pay this payment: {}", checkout_url.href);
+            qr2term::print_qr(checkout_url.href.clone()).ok(/* only print qrcode if everything is fine */);
+        },
         None => warn!("Couldn't find the checkout url!"),
     }
 }
