@@ -8,6 +8,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  MOLLIE_ACCESS_TOKEN: ${{ secrets.MOLLIE_ACCESS_TOKEN }}
+  MOLLIE_ORGANIZATION_ID: ${{ vars.MOLLIE_ORGANIZATION_ID }}
 
 jobs:
   build:

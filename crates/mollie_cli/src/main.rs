@@ -1,9 +1,9 @@
 use clap::{Parser, Subcommand};
 use log::debug;
 mod auth;
+mod balances;
 mod config;
 mod console;
-mod env;
 mod logger;
 mod mollie;
 mod org;
@@ -21,14 +21,14 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Do things with Payments
-    Payments(payments::PaymentsCommmand),
     /// Do Auth things
     Auth(auth::AuthCommand),
-    /// Do environmenty things
-    Env(env::EnvCommand),
+    /// Do Balance things
+    Balances(balances::BalancesCommand),
     /// Do Organizationy things
     Org(org::OrgCommand),
+    /// Do things with Payments
+    Payments(payments::PaymentsCommmand),
 }
 
 #[tokio::main]
@@ -42,10 +42,10 @@ async fn main() -> anyhow::Result<()> {
     }
 
     match cli.command {
-        Some(Commands::Payments(command)) => payments::command(&command).await,
         Some(Commands::Auth(command)) => auth::command(&command),
-        Some(Commands::Env(command)) => env::command(&command),
+        Some(Commands::Balances(command)) => balances::command(&command).await?,
         Some(Commands::Org(command)) => org::command(&command).await?,
+        Some(Commands::Payments(command)) => payments::command(&command).await,
         None => {}
     };
 

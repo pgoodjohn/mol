@@ -8,7 +8,7 @@
 
 use std::collections::HashMap;
 
-use api::{organizations, payments, refunds};
+use api::{organizations, payments, refunds, balances};
 use log::{debug, error};
 use models::error_response::ErrorResponse;
 use reqwest::{header::HeaderMap, Client};
@@ -166,6 +166,10 @@ impl<'c> Mollie<'c> {
     pub fn refunds(&self) -> refunds::RefundsApi {
         refunds::RefundsApi::new(&self.api_client)
     }
+  
+    pub fn balances(&self) -> balances::BalancesApi {
+        balances::BalancesApi::new(&self.api_client)
+    }
 }
 
 #[cfg(test)]
@@ -183,5 +187,27 @@ mod client_tests {
                 assert!(e.to_string().contains("Mollie API Error 401: Unauthorized Request - Missing authentication, or failed to authenticate."));
             }
         }
+    }
+
+    #[tokio::test]
+    async fn test_organization_api_authorizes() {
+        let auth_token = std::env::var("MOLLIE_ACCESS_TOKEN").expect("Please set a valid access token");
+        let expected_organization_id = std::env::var("MOLLIE_ORGANIZATION_ID").expect("Please set an organization id");
+
+        let client = Mollie::build(&auth_token);
+
+        let organization_response = client.organizations().me().await.unwrap();
+
+        assert_eq!(expected_organization_id, organization_response.id);
+    }
+
+    #[tokio::test]
+    async fn test_balances_api_authorizes() {
+        let auth_token = std::env::var("MOLLIE_ACCESS_TOKEN").expect("Please set a valid access token");
+        let client = Mollie::build(&auth_token);
+
+        let balances_response = client.balances().list(None, &None).await.unwrap();
+
+        assert_eq!(1, balances_response.count);
     }
 }
