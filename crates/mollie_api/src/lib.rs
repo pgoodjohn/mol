@@ -39,7 +39,6 @@ lazy_static::lazy_static! {
     );
 }
 
-#[derive(Clone)]
 pub struct ApiClient<'a> {
     /// Async client
     client: Client,
@@ -53,7 +52,7 @@ pub struct ApiClient<'a> {
 
 impl<'a> ApiClient<'a> {
     /// Create a new api (async) client instance.
-    pub fn new(base_url: &'static str, auth_provider: &'a impl AuthProvider) -> Self {
+    pub fn new(base_url: &'static str, auth_provider: &'a mut dyn AuthProvider) -> Self {
         let client = Client::builder()
             .default_headers(ApiClient::default_headers())
             .build()
@@ -76,7 +75,7 @@ impl<'a> ApiClient<'a> {
         headers
     }
 
-    fn get_auth_token(&self) -> String {
+    fn get_auth_token(&mut self) -> String {
         return self.auth_provider.get_auth_token().get_token().to_owned()
     }
 
@@ -85,7 +84,7 @@ impl<'a> ApiClient<'a> {
     }
 
     /// Perform a post request using default headers and auth token
-    pub async fn post<T, R>(&self, endpoint: &str, body: &T) -> Result<R>
+    pub async fn post<T, R>(&mut self, endpoint: &str, body: &T) -> Result<R>
     where
         T: Serialize,
         R: for<'de> Deserialize<'de>,
@@ -104,7 +103,7 @@ impl<'a> ApiClient<'a> {
     }
 
     /// Perform a get request using default headers and auth token
-    pub async fn get<R>(&self, endpoint: &str, query: Option<HashMap<&str, String>>) -> Result<R>
+    pub async fn get<R>(&mut self, endpoint: &str, query: Option<HashMap<&str, String>>) -> Result<R>
     where
         R: for<'de> Deserialize<'de>,
     {
@@ -146,14 +145,13 @@ impl<'a> ApiClient<'a> {
 }
 
 /// Mollie API client
-#[derive(Clone)]
 pub struct Mollie<'c> {
     api_client: ApiClient<'c>,
 }
 
 impl<'c> Mollie<'c> {
     /// Create a new Mollie instance
-    pub fn build(auth_provider: &'c impl AuthProvider) -> Self {
+    pub fn build(auth_provider: &'c mut dyn AuthProvider) -> Self {
         debug!("Creating new Mollie instance. Base url: {}", API_BASE_URL);
         Self {
             api_client: ApiClient::new(API_BASE_URL, auth_provider),
@@ -161,7 +159,7 @@ impl<'c> Mollie<'c> {
     }
 
     /// Organizations API
-    pub fn organizations(&self) -> organizations::OrganizationsApi {
+    pub fn organizations(&'c self) -> organizations::OrganizationsApi {
         organizations::OrganizationsApi::new(&self.api_client)
     }
 }
