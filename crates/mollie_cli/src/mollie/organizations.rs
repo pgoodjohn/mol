@@ -1,4 +1,5 @@
 use log::debug;
+use mollie_api::auth::ApiBearerToken;
 use reqwest::StatusCode;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -24,14 +25,14 @@ pub trait OrganizationsApi {
         query: Option<HashMap<&str, String>>,
     ) -> Result<reqwest::blocking::Response, reqwest::Error>;
 
-    fn get_authentication_method(&self) -> super::ApiBearerToken;
+    fn get_authentication_method(&self) -> ApiBearerToken;
 
     fn get_current_organization(
         &self,
     ) -> Result<OrganizationResource, super::errors::ApiClientError> {
         let auth_token = self.get_authentication_method();
         debug!("{:?}", &auth_token);
-        if auth_token.token_type != super::ApiTokenTypes::AccessToken {
+        if !auth_token.is_access_code() {
             return Err(
                 super::errors::ApiClientError::CouldNotFindValidAuthorizationMethodToPerformRequest(
                 ),

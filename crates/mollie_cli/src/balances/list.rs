@@ -1,20 +1,43 @@
+use crate::balances::Balance;
+use crate::config::MollieConfig;
 use colored::Colorize;
+use colored_json::ToColoredJson;
 use log::{debug, info};
 use mollie_api::Mollie;
-use crate::balances::Balance;
-use crate::config;
 
-pub async fn command(limit: &Option<i32>, from: &Option<String>) -> anyhow::Result<()> {
+pub async fn command(
+    config: &MollieConfig,
+    limit: &Option<i32>,
+    from: &Option<String>,
+    with_response: bool,
+) -> anyhow::Result<()> {
     debug!("Listing balances");
-    let token = config::get_bearer_token().unwrap();
-    let balances = Mollie::build(&token.value).balances().list(*limit, from).await?;
+    let token = config.bearer_token()?;
+    let balances = Mollie::build(token.as_str())
+        .balances()
+        .list(*limit, from)
+        .await?;
 
     info!("Listing balances");
     info!("   {}", Colorize::bright_black(&*Balance::header()));
-    balances.embedded.balances.iter().enumerate().for_each(|(index, balance)| {
-        info!("{}. {}", index + 1, Balance::from(balance.clone()).to_string());
-    });
+    balances
+        .embedded
+        .balances
+        .iter()
+        .enumerate()
+        .for_each(|(index, balance)| {
+            info!(
+                "{}. {}",
+                index + 1,
+                Balance::from(balance.clone()).to_string()
+            );
+        });
     debug!("{:?}", balances);
+
+    if with_response {
+        let pretty_json = jsonxf::pretty_print(&serde_json::to_string(&balances).unwrap()).unwrap();
+        info!("{}", pretty_json.to_colored_json_auto().unwrap());
+    }
 
     Ok(())
 }

@@ -1,19 +1,19 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use crate::models::amount::Amount;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct BalancesListResource {
     pub count: i32,
-    #[serde(rename(deserialize = "_embedded"))]
+    #[serde(rename(deserialize = "_embedded", serialize="_embedded"))]
     pub embedded: EmbeddedBalanceResource,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct EmbeddedBalanceResource {
     pub balances: Vec<BalanceResource>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BalanceResource {
     pub id: String,
@@ -29,7 +29,7 @@ pub struct BalanceResource {
     pub transfer_destination: TransferDestination,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransferDestination {
     #[serde(rename = "type")]
