@@ -29,13 +29,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Do Auth things
+    /// Set up your authentication method for the Mollie API
     Auth(auth::AuthCommand),
-    /// Do Balance things
+    /// Get information about your balances
     Balances(balances::BalancesCommand),
-    /// Do Organizationy things
+    /// Get information about the organization you are authenticated as
     Org(org::OrgCommand),
-    /// Do things with Payments
+    /// Create, refund and get information about your payments
     Payments(payments::PaymentsCommmand),
 }
 

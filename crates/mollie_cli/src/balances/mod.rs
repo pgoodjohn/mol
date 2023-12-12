@@ -10,11 +10,14 @@ mod list;
 #[derive(Parser)]
 #[clap(version, about)]
 pub struct BalancesCommand {
+    /// Enable debug logging
     #[clap(short, long, global = true)]
     debug: bool,
 
+    /// Print the API response after performing an API call
     #[clap(long = "withResponse", global = true)]
     with_response: bool,
+
 
     #[clap(subcommand)]
     command: Option<BalanceCommands>,
@@ -22,12 +25,12 @@ pub struct BalancesCommand {
 
 #[derive(Subcommand)]
 pub enum BalanceCommands {
-    /// Get a balance
+    /// Get information about a single balance (defaults to your primary balance)
     Get {
         #[clap(default_value = "primary")]
         id: String,
     },
-    /// List balances
+    /// List and get information about all your balances
     List {
         #[clap(short, long)]
         limit: Option<i32>,

@@ -1,9 +1,10 @@
-use crate::config::MollieConfig;
-use colored::Colorize;
+use crate::{config::MollieConfig, payments::create};
 use log::{debug, info, warn};
 use mollie_api::Mollie;
 use requestty::Question;
 use serde::Serialize;
+use colored::Colorize;
+use colored_json::ToColoredJson;
 
 pub async fn command(
     config: &MollieConfig,
@@ -13,6 +14,7 @@ pub async fn command(
     input_redirect_url: Option<&String>,
     input_profile_id: Option<&String>,
     debug: &bool,
+    with_request: bool,
 ) -> miette::Result<()> {
     debug!("Running Create Payment Command");
     let currency = String::from(input_currency.unwrap());
@@ -36,8 +38,14 @@ pub async fn command(
         ask_confirmation();
     }
 
-    let token = config.bearer_token()?;
+    debug!("{:?}", create_payment_request);
 
+    if with_request {
+        let pretty_json = jsonxf::pretty_print(&serde_json::to_string(&create_payment_request).unwrap()).unwrap();
+        info!("{}", pretty_json.to_colored_json_auto().unwrap());
+    }
+
+    let token = config.bearer_token()?;
     let response = Mollie::build(&token.as_str())
         .payments()
         .create_payment(&create_payment_request)
@@ -51,7 +59,7 @@ pub async fn command(
     return Ok(());
 }
 
-pub async fn interactive(config: &MollieConfig, debug: &bool) -> miette::Result<()> {
+pub async fn interactive(config: &MollieConfig, debug: &bool, with_request: bool) -> miette::Result<()> {
     debug!("Running interactive Create Payment Command");
 
     // Currency
@@ -74,6 +82,11 @@ pub async fn interactive(config: &MollieConfig, debug: &bool) -> miette::Result<
         redirect_url,
         profile_id,
     };
+
+    if with_request {
+        let pretty_json = jsonxf::pretty_print(&serde_json::to_string(&create_payment_request).unwrap()).unwrap();
+        info!("{}", pretty_json.to_colored_json_auto().unwrap());
+    }
 
     if debug == &true {
         let json = serde_json::to_string(&create_payment_request).unwrap();
