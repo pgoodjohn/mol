@@ -42,11 +42,10 @@ async fn main() -> anyhow::Result<()> {
     }
 
     match cli.command {
-        Some(Commands::Payments(command)) => payments::command(&command).await,
         Some(Commands::Auth(command)) => auth::command(&command),
         Some(Commands::Balances(command)) => balances::command(&command).await?,
         Some(Commands::Org(command)) => org::command(&command).await?,
-        Some(Commands::Payments(command)) => payments::command(&command),
+        Some(Commands::Payments(command)) => payments::command(&command).await,
         None => {}
     };
 
