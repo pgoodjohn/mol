@@ -96,7 +96,7 @@ pub fn access_token() -> Result<String, CouldNotRetrieveConfig> {
 pub fn api_url() -> Result<String, CouldNotRetrieveConfig> {
     let config = from_file()?;
 
-    Ok(config.api_url)
+    Ok(config.api_url.trim_end_matches('/').to_string())
 }
 
 #[derive(Debug)]

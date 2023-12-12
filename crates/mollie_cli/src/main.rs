@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use log::debug;
 mod auth;
+mod balance;
 mod config;
 mod console;
 mod env;
@@ -29,6 +30,8 @@ enum Commands {
     Env(env::EnvCommand),
     /// Do Organizationy things
     Org(org::OrgCommand),
+    /// Do Balance things
+    Balance(balance::BalanceCommand),
 }
 
 #[tokio::main]
@@ -46,6 +49,7 @@ async fn main() -> anyhow::Result<()> {
         Some(Commands::Auth(command)) => auth::command(&command),
         Some(Commands::Env(command)) => env::command(&command),
         Some(Commands::Org(command)) => org::command(&command).await?,
+        Some(Commands::Balance(command)) => balance::command(&command).await?,
         None => {}
     };
 
