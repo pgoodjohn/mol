@@ -48,7 +48,7 @@ pub struct ApiClient<'a> {
     base_url: &'a str,
 
     /// Auth token
-    auth_provider: &'a dyn AuthProvider,
+    auth_provider: &'a mut dyn AuthProvider,
 }
 
 impl<'a> ApiClient<'a> {

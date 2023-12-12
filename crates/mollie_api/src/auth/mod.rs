@@ -36,5 +36,5 @@ impl ApiBearerToken {
 }
 
 pub trait AuthProvider {
-    fn get_auth_token(&self) -> ApiBearerToken;
+    fn get_auth_token(&mut self) -> ApiBearerToken;
 }

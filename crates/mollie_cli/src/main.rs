@@ -50,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
         Some(Commands::Payments(command)) => payments::command(&command, &config_service),
         Some(Commands::Auth(command)) => auth::command(&command, &mut config_service).await?,
         Some(Commands::Env(command)) => env::command(&command, &mut config_service)?,
-        Some(Commands::Org(command)) => org::command(&command, &config_service).await?,
+        Some(Commands::Org(command)) => org::command(&command, &mut config_service).await?,
         None => {}
     };
 

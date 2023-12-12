@@ -27,14 +27,14 @@ pub enum OrgCommands {
 
 pub async fn command(
     command: &OrgCommand,
-    config_service: &dyn ConfigurationService,
+    config_service: &mut dyn ConfigurationService,
 ) -> anyhow::Result<()> {
     let config = config_service.read();
     match command.command.as_ref() {
         Some(OrgCommands::Permissions { granted }) => {
             permissions::command(config, granted);
         }
-        None => me::command(config).await?,
+        None => me::command(config_service).await?,
     };
     Ok(())
 }
