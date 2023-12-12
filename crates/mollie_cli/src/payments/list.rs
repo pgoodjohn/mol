@@ -1,31 +1,25 @@
 use log::{debug, info};
 use pad::{Alignment, PadStr};
 use mollie_api::Mollie;
+use colored::Colorize;
+use crate::payments::Payment;
 use crate::config::MollieConfig;
+
 
 pub async fn command(config: &MollieConfig, limit: &Option<i32>, from: &Option<String>, profile_id: &Option<String>, test_mode: &Option<bool>)-> anyhow::Result<()> {
     debug!("Listing 10 Payments");
     let token = config.bearer_token()?;
-    let response = Mollie::build(token.as_str()).payments().list(limit, from, profile_id, test_mode).await?;
-    //let response = client.list_payments(*limit, from);
-    list_payments_from_response(response);    
+    let response = Mollie::build(&token.as_str()).payments().list(limit, from, profile_id, test_mode).await;
+    match response {
+        Ok(res) => list_payments_from_response(res),
+        Err(e) => info!("{}", e),
+    }
     return Ok(());
 }
 
 fn list_payments_from_response(response: mollie_api::models::payment::PaymentsListResource) {
-    response.embedded.payments.iter().enumerate().for_each(|(index, payment)|{
-        info!(
-            "{:2}. | {} | {} {} | {} | {}",
-            index,
-            payment.id,
-            payment
-                .amount
-                .value
-                .pad_to_width_with_alignment(8, Alignment::Right),
-            payment.amount.currency,
-            payment.status,
-            payment.created_at
-        );
+    info!(" {}", Colorize::bright_black(&*Payment::header()));
+    response.embedded.payments.iter().enumerate().for_each(|(index, payment)| {
+        info!("{}. {}", index + 1, Payment::from(payment.clone()).to_string());
     });
 }
-

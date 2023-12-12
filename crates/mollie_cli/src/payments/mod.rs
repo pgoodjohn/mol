@@ -1,10 +1,15 @@
+use super::config;
+use std::fmt::Display;
+
 use crate::config::ConfigurationService;
 use clap::{Parser, Subcommand};
-
+use colored::Colorize;
+use mollie_api::models::payment::PaymentResource;
 mod create;
 mod get;
 mod list;
 mod refund;
+mod cancel;
 
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
@@ -66,6 +71,12 @@ pub enum PaymentsCommands {
         #[clap(long)]
         description: String,
     },
+
+    ///Cancel a Payment
+    #[clap(arg_required_else_help(true))]
+    Cancel {
+        id: String
+    }
 }
 
 pub async fn command(
@@ -119,8 +130,58 @@ pub async fn command(
         }) => {
             refund::command(config, id, amount, description).await?;
         }
+        Some(PaymentsCommands::Cancel {
+            id
+        }) => {
+            cancel::command(config, id).await?;
+        }
         None => {}
     }
 
     Ok(())
+}
+
+pub struct Payment {
+    pub id: String,
+    pub mode: String,
+    pub status: String,
+    pub amount: String,
+    pub created_at: String,
+    pub description: String,
+    pub redirect_url: String,
+}
+
+impl Payment {
+    pub fn header() -> String {
+        format!("|{:^14} {:^4} {:^12} {:^26} {:^30} {} |", "ID", "MODE", "AMOUNT", "CREATED_AT", "DESCITPION", "REDIRECT_URL")
+    }
+}
+
+impl From<PaymentResource> for Payment {
+    fn from(payment: PaymentResource) -> Self{
+        Self {
+            id: payment.id,
+            mode: payment.mode,
+            status: payment.status,
+            amount: payment.amount.to_string(),
+            created_at: payment.created_at,
+            description: payment.description,
+            redirect_url: payment.redirect_url,
+        }
+    }
+}
+
+impl Display for Payment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} | {} | {} | {} | {} | {}  ",
+            if self.status == "active" { Colorize::green(&*self.id) } else { Colorize::blink(&*self.id) },
+            if self.mode == "live" { Colorize::bright_green("LIVE") } else { Colorize::bright_black("TEST") },
+            Colorize::green(&*self.amount.to_string()),
+            Colorize::blue(&*self.created_at),
+            self.description,
+            self.redirect_url
+        )
+    }
 }

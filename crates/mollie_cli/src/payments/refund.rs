@@ -16,13 +16,14 @@ pub async fn command(
     };
 
     let token = config.bearer_token()?;
-    let response = Mollie::build(token.as_str())
-        .refunds()
-        .refund(&payment_id, &request)
-        .await?;
-    log::debug!("{:?}", response);
+    let response = Mollie::build(&token.as_str()).refunds().refund(&payment_id, &request).await;
 
-    println!("{:#?}", response);
+    match response {
+        Ok(res) => log::info!("{}", res.to_string()),
+        Err(e) => log::info!("{:?}", e),
+    }
+
+
 
     return Ok(());
 }

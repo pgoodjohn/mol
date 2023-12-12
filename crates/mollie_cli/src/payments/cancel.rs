@@ -1,31 +1,25 @@
-use colored::Colorize;
 use mollie_api::Mollie;
-use crate::config::MollieConfig;
 use log::{debug, info};
+use colored::Colorize;
 use crate::payments::Payment;
+use crate::config::MollieConfig;
 
 pub async fn command(config: &MollieConfig, payment_id: &String) -> anyhow::Result<()>{
-    debug!("Running Get API Payment for payment: {}", payment_id);
+    debug!("Running Cancel API Payment for paymner: {}", payment_id);
 
     let token = config.bearer_token()?;
 
-    let payment = Mollie::build(&token.as_str()).payments().get_by_id(payment_id).await;
+    let cancel = Mollie::build(&token.as_str()).payments().cancel(payment_id).await;
 
-
-    debug!("{:?}", payment);
-    match payment {
+    debug!("{:?}", cancel);
+    match cancel {
         Ok(p) => {
+            info!("{}", Colorize::red("Payment Cancelled"));
             info!("{}", Colorize::bright_black(&*Payment::header()));
             info!("{}", Payment::from(p.clone()).to_string());
         },
         Err(e) => info!("{}", e), 
     }
-    /*info!(
-        "{} | {} | {} {} | {}",
-        payment.id, payment.mode, payment.amount.value, payment.amount.currency, payment.status
-    );
-    */
-   
 
     return Ok(());
 }

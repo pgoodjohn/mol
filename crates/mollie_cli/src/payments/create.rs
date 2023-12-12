@@ -3,6 +3,7 @@ use log::{debug, info, warn};
 use mollie_api::Mollie;
 use requestty::Question;
 use serde::Serialize;
+use colored::Colorize;
 
 pub async fn command(
     config: &MollieConfig,
@@ -37,14 +38,15 @@ pub async fn command(
 
     let token = config.bearer_token()?;
 
-    let payment = Mollie::build(token.as_str())
-        .payments()
-        .create_payment(&create_payment_request)
-        .await?;
+    let response = Mollie::build(&token.as_str()).payments().create_payment(&create_payment_request).await;
 
-    log::debug!("{:?}", payment);
-
-    return Ok(handle_payment_created_response(payment));
+    log::debug!("{:?}", response);
+    match response {
+        Ok(payment) => handle_payment_created_response(payment),
+        Err(e) => info!("{}", e),
+    }
+    return Ok(());
+   
 }
 
 pub async fn interactive(config: &MollieConfig, debug: &bool) -> anyhow::Result<()> {
@@ -79,19 +81,25 @@ pub async fn interactive(config: &MollieConfig, debug: &bool) -> anyhow::Result<
 
     let token = config.bearer_token()?;
 
-    let payment = Mollie::build(token.as_str())
+    let response = Mollie::build(token.as_str())
         .payments()
         .create_payment(&create_payment_request)
-        .await?;
+        .await;
 
-    log::debug!("{:?}", payment);
-    return Ok(handle_payment_created_response(payment));
+
+    log::debug!("{:?}", response);
+    match response {
+        Ok(payment) => handle_payment_created_response(payment),
+        Err(e) => info!("{}", e),
+    }
+    return Ok(());
+ 
 }
 
 fn handle_payment_created_response(response: mollie_api::models::payment::PaymentResource) {
     match response.links.get("checkout") {
         Some(checkout_url) => {
-            info!("Pay this payment: {}", checkout_url.href);
+            info!("Pay this payment: {}", Colorize::blue(&*checkout_url.href));
             qr2term::print_qr(checkout_url.href.clone()).ok(/* only print qrcode if everything is fine */);
         }
         None => warn!("Couldn't find the checkout url!"),
