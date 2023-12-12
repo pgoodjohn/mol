@@ -2,10 +2,11 @@ use log::{debug, info};
 use pad::{Alignment, PadStr};
 use mollie_api::Mollie;
 use colored::Colorize;
-
 use crate::payments::Payment;
+use crate::config::MollieConfig;
 
-pub async fn command(limit: &Option<i32>, from: &Option<String>, profile_id: &Option<String>, test_mode: &Option<bool>)-> anyhow::Result<()> {
+
+pub async fn command(config: &MollieConfig, limit: &Option<i32>, from: &Option<String>, profile_id: &Option<String>, test_mode: &Option<bool>)-> anyhow::Result<()> {
     debug!("Listing 10 Payments");
     let token = super::config::get_bearer_token().unwrap();
     let response = Mollie::build(&token.value).payments().list(limit, from, profile_id, test_mode).await;

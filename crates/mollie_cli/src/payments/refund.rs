@@ -1,6 +1,12 @@
+use crate::config::MollieConfig;
 use mollie_api::Mollie;
 
-pub async fn command(payment_id: &String, amount: &f32, description: &String) -> anyhow::Result<()>{
+pub async fn command(
+    config: &MollieConfig,
+    payment_id: &String,
+    amount: &f32,
+    description: &String,
+) -> anyhow::Result<()> {
     let request = mollie_api::models::refund::RefundPaymentRequest {
         amount: mollie_api::models::amount::Amount {
             value: format!("{:.2}", amount),

@@ -1,12 +1,13 @@
-use super::config;
+use crate::config::MollieConfig;
 use log::{debug, info, warn};
+use mollie_api::Mollie;
 use requestty::Question;
 use serde::Serialize;
 use mollie_api::Mollie;
 use colored::Colorize;
 
-
 pub async fn command(
+    config: &MollieConfig,
     input_currency: Option<&String>,
     input_amount: Option<&String>,
     input_description: Option<&String>,
@@ -36,7 +37,7 @@ pub async fn command(
         ask_confirmation();
     }
 
-    let token = super::config::get_bearer_token().unwrap();
+    let token = config.bearer_token()?;
 
     let response = Mollie::build(&token.value).payments().create_payment(&create_payment_request).await;
 
@@ -46,10 +47,10 @@ pub async fn command(
         Err(e) => info!("{}", e),
     }
     return Ok(());
-    
+   
 }
 
-pub async fn interactive(debug: &bool) -> anyhow::Result<()> {
+pub async fn interactive(config: &MollieConfig, debug: &bool) -> anyhow::Result<()> {
     debug!("Running interactive Create Payment Command");
 
     // Currency
@@ -62,7 +63,7 @@ pub async fn interactive(debug: &bool) -> anyhow::Result<()> {
     let redirect_url = ask_redirect_url().unwrap();
     // Webhook (Optional fields [...])
     // Profile ID - prompted only if auth is via access token
-    let profile_id = ask_profile_id().unwrap();
+    let profile_id = ask_profile_id(config).unwrap();
     let create_payment_request = mollie_api::models::payment::CreatePaymentRequest {
         amount: mollie_api::models::amount::Amount {
             currency: amount.currency,
@@ -79,7 +80,12 @@ pub async fn interactive(debug: &bool) -> anyhow::Result<()> {
         ask_confirmation();
     }
 
-    let token = super::config::get_bearer_token().unwrap();
+    let token = config.bearer_token()?;
+
+    let payment = Mollie::build(token.as_str())
+        .payments()
+        .create_payment(&create_payment_request)
+        .await?;
 
     let response = Mollie::build(&token.value).payments().create_payment(&create_payment_request).await;
 
@@ -97,7 +103,7 @@ fn handle_payment_created_response(response: mollie_api::models::payment::Paymen
         Some(checkout_url) => {
             info!("Pay this payment: {}", Colorize::blue(&*checkout_url.href));
             qr2term::print_qr(checkout_url.href.clone()).ok(/* only print qrcode if everything is fine */);
-        },
+        }
         None => warn!("Couldn't find the checkout url!"),
     }
 }
@@ -225,14 +231,9 @@ fn ask_redirect_url() -> Result<String, SorryCouldNotCreatePayment> {
     }
 }
 
-fn ask_profile_id() -> Result<Option<String>, SorryCouldNotCreatePayment> {
-    match config::access_token() {
-        Ok(_) => {
-            // found access token, continue
-        }
-        Err(_) => {
-            return Ok(None);
-        }
+fn ask_profile_id(config: &MollieConfig) -> Result<Option<String>, SorryCouldNotCreatePayment> {
+    if !config.auth.access_code.is_some() {
+        return Ok(None);
     }
 
     let question = Question::input("profile_id")

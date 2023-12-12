@@ -1,7 +1,8 @@
-use std::fmt::Display;
-use colored::Colorize;
+use crate::config::ConfigurationService;
 use clap::{Parser, Subcommand};
+use colored::Colorize;
 use mollie_api::models::balance::BalanceResource;
+use std::fmt::Display;
 
 mod get;
 mod list;
@@ -11,6 +12,9 @@ mod list;
 pub struct BalancesCommand {
     #[clap(short, long, global = true)]
     debug: bool,
+
+    #[clap(long = "withResponse", global = true)]
+    with_response: bool,
 
     #[clap(subcommand)]
     command: Option<BalanceCommands>,
@@ -32,15 +36,15 @@ pub enum BalanceCommands {
     },
 }
 
-pub async fn command(command: &BalancesCommand) -> anyhow::Result<()> {
+pub async fn command(
+    command: &BalancesCommand,
+    config_service: &dyn ConfigurationService,
+) -> anyhow::Result<()> {
+    let config = config_service.read();
     match command.command.as_ref() {
-        Some(BalanceCommands::Get { id }) => {
-            get::command(id).await
-        }
-        Some(BalanceCommands::List { limit, from }) => {
-            list::command(limit, from).await
-        }
-        None => Ok(())
+        Some(BalanceCommands::Get { id }) => get::command(config, id, command.with_response).await,
+        Some(BalanceCommands::List { limit, from }) => list::command(config, limit, from, command.with_response).await,
+        None => Ok(()),
     }
 }
 
@@ -54,8 +58,10 @@ pub struct Balance {
 
 impl Balance {
     pub fn header() -> String {
-
-        format!("|  {:^24} {:^4} {:^12} {} |", "ID", "MODE", "AVAILABLE", "PENDING")
+        format!(
+            "|  {:^24} {:^4} {:^12} {} |",
+            "ID", "MODE", "AVAILABLE", "PENDING"
+        )
     }
 }
 
@@ -76,8 +82,16 @@ impl Display for Balance {
         write!(
             f,
             "{} | {} | {} | {}",
-            if self.status == "active" { Colorize::green(&*self.id) } else { Colorize::blink(&*self.id) },
-            if self.mode == "live" { Colorize::bright_green("LIVE") } else { Colorize::bright_black("TEST") },
+            if self.status == "active" {
+                Colorize::green(&*self.id)
+            } else {
+                Colorize::blink(&*self.id)
+            },
+            if self.mode == "live" {
+                Colorize::bright_green("LIVE")
+            } else {
+                Colorize::bright_black("TEST")
+            },
             Colorize::green(&*self.available_amount.to_string()),
             Colorize::yellow(&*self.pending_amount.to_string()),
         )
