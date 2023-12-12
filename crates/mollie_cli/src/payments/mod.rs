@@ -4,6 +4,7 @@ use crate::config::ConfigurationService;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use mollie_api::models::payment::PaymentResource;
+use strum::Display;
 mod cancel;
 mod create;
 mod get;
