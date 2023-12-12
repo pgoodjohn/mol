@@ -1,5 +1,5 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
 use super::{amount::Amount, link::Link};
 
@@ -49,7 +49,7 @@ pub struct PaymentsListResource {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EmbeddedPayments {
-    pub payments: Vec<PaymentResource>
+    pub payments: Vec<PaymentResource>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -58,5 +58,5 @@ pub struct CreatePaymentRequest {
     pub amount: Amount,
     pub description: String,
     pub redirect_url: String,
-    pub profile_id: Option<String>, 
+    pub profile_id: Option<String>,
 }

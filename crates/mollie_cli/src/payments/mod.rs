@@ -4,6 +4,7 @@ use crate::config::ConfigurationService;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use mollie_api::models::payment::PaymentResource;
+use strum::Display;
 mod cancel;
 mod create;
 mod get;
@@ -21,6 +22,17 @@ pub struct PaymentsCommmand {
 
     #[clap(subcommand)]
     command: Option<PaymentsCommands>,
+}
+
+#[derive(clap::ValueEnum, Clone, Display)]
+pub enum Status {
+    Open,
+    Canceled,
+    Pending,
+    Authorized,
+    Expired,
+    Failed,
+    Paid,
 }
 
 #[derive(Subcommand)]
@@ -61,6 +73,8 @@ pub enum PaymentsCommands {
         profile_id: Option<String>,
         #[clap(short, long)]
         test_mode: Option<bool>,
+        #[clap(short, long)]
+        status: Option<Status>,
     },
     /// Refund a payment
     #[clap(arg_required_else_help(true))]
@@ -120,6 +134,7 @@ pub async fn command(
             from,
             profile_id,
             test_mode,
+            status,
         }) => {
             list::command(
                 config,
@@ -128,6 +143,7 @@ pub async fn command(
                 profile_id,
                 test_mode,
                 payments_command.with_response,
+                status,
             )
             .await?;
         }
@@ -167,8 +183,8 @@ pub struct Payment {
 impl Payment {
     pub fn header() -> String {
         format!(
-            "|{:^14} {:^4} {:^12} {:^26} {:^30} {} |",
-            "ID", "MODE", "AMOUNT", "CREATED_AT", "DESCITPION", "REDIRECT_URL"
+            "|{:^14} {:^8} {:^4} {:^12} {:^26} {:^30} {} |",
+            "ID", "STATUS", "MODE", "AMOUNT", "CREATED_AT", "DESCITPION", "REDIRECT_URL"
         )
     }
 }
@@ -191,11 +207,58 @@ impl Display for Payment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} | {} | {} | {} | {} | {}  ",
-            if self.status == "active" {
-                Colorize::green(&*self.id)
-            } else {
-                Colorize::blink(&*self.id)
+            "{} | {} | {} | {} | {} | {} | {}  ",
+            match self.status.as_str() {
+                "open" => {
+                    Colorize::blue(&*self.id)
+                }
+                "cancelled" => {
+                    Colorize::yellow(&*self.id)
+                }
+                "pending" => {
+                    Colorize::blue(&*self.id)
+                }
+                "authorized" => {
+                    Colorize::blue(&*self.id)
+                }
+                "expired" => {
+                    Colorize::yellow(&*self.id)
+                }
+                "failed" => {
+                    Colorize::red(&*self.id)
+                }
+                "paid" => {
+                    Colorize::green(&*self.id)
+                }
+                &_ => {
+                    Colorize::blink(&*self.id)
+                }
+            },
+            match self.status.as_str() {
+                "open" => {
+                    Colorize::blue(&*self.status)
+                }
+                "cancelled" => {
+                    Colorize::yellow(&*self.status)
+                }
+                "pending" => {
+                    Colorize::blue(&*self.status)
+                }
+                "authorized" => {
+                    Colorize::blue(&*self.status)
+                }
+                "expired" => {
+                    Colorize::yellow(&*self.status)
+                }
+                "failed" => {
+                    Colorize::red(&*self.status)
+                }
+                "paid" => {
+                    Colorize::green(&*self.status)
+                }
+                &_ => {
+                    Colorize::blink(&*self.status)
+                }
             },
             if self.mode == "live" {
                 Colorize::bright_green("LIVE")

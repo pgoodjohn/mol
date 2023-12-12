@@ -2,9 +2,9 @@
 //!
 //! Used to retrieve information about current payments//! Payments API module
 //!
-//! Used to retrieve information about 
+//! Used to retrieve information about
 use crate::{
-    models::{payment::{PaymentResource, PaymentsListResource, CreatePaymentRequest}},
+    models::payment::{CreatePaymentRequest, PaymentResource, PaymentsListResource},
     ApiClient,
 };
 
@@ -27,7 +27,13 @@ impl<'client> PaymentsApi<'client> {
     }
 
     // [List Payments](https://docs.mollie.com/reference/v2/payments-api/list-payments)
-    pub async fn list(&self, limit: &Option<i32>, from: &Option<String>, profile_id: &Option<String>, test_mode: &Option<bool>) -> crate::Result<PaymentsListResource> {
+    pub async fn list(
+        &self,
+        limit: &Option<i32>,
+        from: &Option<String>,
+        profile_id: &Option<String>,
+        test_mode: &Option<bool>,
+    ) -> crate::Result<PaymentsListResource> {
         let endpoint = "/payments";
         let mut params = std::collections::HashMap::new();
         if let Some(l) = limit {
@@ -50,9 +56,12 @@ impl<'client> PaymentsApi<'client> {
     }
 
     /// [Create Payment](https://docs.mollie.com/reference/v2/payments-api/create-payment)
-    pub async fn create_payment(&self, body: &CreatePaymentRequest) -> crate::Result<PaymentResource> {
+    pub async fn create_payment(
+        &self,
+        body: &CreatePaymentRequest,
+    ) -> crate::Result<PaymentResource> {
         let endpoint = "/payments";
-        
+
         self.api_client.post(&endpoint, body).await
     }
 

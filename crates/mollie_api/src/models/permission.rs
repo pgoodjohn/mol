@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use super::link::Link;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PermissionResource {
@@ -9,7 +9,7 @@ pub struct PermissionResource {
     pub granted: bool,
 
     #[serde(rename = "_links")]
-    links: std::collections::HashMap<String, Link>    
+    links: std::collections::HashMap<String, Link>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -18,10 +18,10 @@ pub struct PermissionsListResource {
     #[serde(rename = "_embedded")]
     pub embedded: PermissionsEmbeddedResource,
     #[serde(rename = "_links")]
-    links: std::collections::HashMap<String, Link>
+    links: std::collections::HashMap<String, Link>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PermissionsEmbeddedResource {
-    pub permissions: Vec<PermissionResource>
+    pub permissions: Vec<PermissionResource>,
 }

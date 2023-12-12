@@ -1,10 +1,7 @@
 //! Permissions API module
 //!
 //! Used to retrieve information about current access token permissions
-use crate::{
-    models::permission::PermissionsListResource,
-    ApiClient,
-};
+use crate::{models::permission::PermissionsListResource, ApiClient};
 
 /// [Permissions Api](https://docs.mollie.com/reference/v2/permissions-api/overview)
 /// Used to retrieve information about an organization.

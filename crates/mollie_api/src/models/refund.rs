@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Display;
-use serde::{Serialize, Deserialize};
 
 use super::{amount::Amount, link::Link};
 
@@ -29,13 +29,7 @@ impl Display for RefundResource {
         write!(
             f,
             "[{}] {} | {} | {} | {} | {} |",
-            self.id,
-            self.status,
-            self.amount,
-            self.created_at,
-            self.description,
-            self.payment_id,
+            self.id, self.status, self.amount, self.created_at, self.description, self.payment_id,
         )
     }
 }
-
