@@ -4,7 +4,6 @@ mod auth;
 mod balances;
 mod config;
 mod console;
-mod env;
 mod logger;
 mod mollie;
 mod org;
@@ -26,8 +25,6 @@ enum Commands {
     Auth(auth::AuthCommand),
     /// Do Balance things
     Balances(balances::BalancesCommand),
-    /// Do environmenty things
-    Env(env::EnvCommand),
     /// Do Organizationy things
     Org(org::OrgCommand),
     /// Do things with Payments
@@ -47,7 +44,6 @@ async fn main() -> anyhow::Result<()> {
     match cli.command {
         Some(Commands::Auth(command)) => auth::command(&command),
         Some(Commands::Balances(command)) => balances::command(&command).await?,
-        Some(Commands::Env(command)) => env::command(&command),
         Some(Commands::Org(command)) => org::command(&command).await?,
         Some(Commands::Payments(command)) => payments::command(&command),
         None => {}
