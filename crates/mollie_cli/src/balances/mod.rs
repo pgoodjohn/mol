@@ -5,7 +5,7 @@ mod list;
 
 #[derive(Parser)]
 #[clap(version, about)]
-pub struct BalanceCommand {
+pub struct BalancesCommand {
     #[clap(short, long, global = true)]
     debug: bool,
 
@@ -15,11 +15,12 @@ pub struct BalanceCommand {
 
 #[derive(Subcommand)]
 pub enum BalanceCommands {
-    /// List balances
+    /// Get a balance
     Get {
         #[clap(default_value = "primary")]
         id: String,
     },
+    /// List balances
     List {
         #[clap(short, long)]
         limit: Option<i32>,
@@ -28,7 +29,7 @@ pub enum BalanceCommands {
     },
 }
 
-pub async fn command(command: &BalanceCommand) -> anyhow::Result<()> {
+pub async fn command(command: &BalancesCommand) -> anyhow::Result<()> {
     match command.command.as_ref() {
         Some(BalanceCommands::Get { id }) => {
             get::command(id).await
