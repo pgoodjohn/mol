@@ -1,10 +1,11 @@
 use colored::Colorize;
+use colored_json::ToColoredJson;
 use mollie_api::Mollie;
 use crate::config::MollieConfig;
 use log::{debug, info};
 use crate::payments::Payment;
 
-pub async fn command(config: &MollieConfig, payment_id: &String) -> anyhow::Result<()>{
+pub async fn command(config: &MollieConfig, payment_id: &String, with_response: bool) -> anyhow::Result<()>{
     debug!("Running Get API Payment for payment: {}", payment_id);
 
     let token = config.bearer_token()?;
@@ -17,15 +18,14 @@ pub async fn command(config: &MollieConfig, payment_id: &String) -> anyhow::Resu
         Ok(p) => {
             info!("{}", Colorize::bright_black(&*Payment::header()));
             info!("{}", Payment::from(p.clone()).to_string());
+            if with_response {
+                let pretty_json = jsonxf::pretty_print(&serde_json::to_string(&p).unwrap()).unwrap();
+                info!("{}", pretty_json.to_colored_json_auto().unwrap());
+
+            }
         },
         Err(e) => info!("{}", e), 
     }
-    /*info!(
-        "{} | {} | {} {} | {}",
-        payment.id, payment.mode, payment.amount.value, payment.amount.currency, payment.status
-    );
-    */
-   
 
     return Ok(());
 }

@@ -8,8 +8,8 @@ mod auth;
 mod balances;
 mod config;
 mod console;
-mod logger;
 mod mollie;
+mod logger;
 mod org;
 mod payments;
 
