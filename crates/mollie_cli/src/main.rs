@@ -7,9 +7,7 @@ extern crate jsonxf;
 mod auth;
 mod balances;
 mod config;
-mod console;
 mod logger;
-mod mollie;
 mod org;
 mod payments;
 
