@@ -2,13 +2,14 @@ use mollie_api::Mollie;
 use log::{debug, info};
 use colored::Colorize;
 use crate::payments::Payment;
+use crate::config::MollieConfig;
 
-pub async fn command(payment_id: &String) -> anyhow::Result<()>{
+pub async fn command(config: &MollieConfig, payment_id: &String) -> anyhow::Result<()>{
     debug!("Running Cancel API Payment for paymner: {}", payment_id);
 
-    let token = super::config::get_bearer_token().unwrap();
+    let token = config.bearer_token()?;
 
-    let cancel = Mollie::build(&token.value).payments().cancel(payment_id).await;
+    let cancel = Mollie::build(&token.as_str()).payments().cancel(payment_id).await;
 
     debug!("{:?}", cancel);
     match cancel {

@@ -8,8 +8,8 @@ use crate::config::MollieConfig;
 
 pub async fn command(config: &MollieConfig, limit: &Option<i32>, from: &Option<String>, profile_id: &Option<String>, test_mode: &Option<bool>)-> anyhow::Result<()> {
     debug!("Listing 10 Payments");
-    let token = super::config::get_bearer_token().unwrap();
-    let response = Mollie::build(&token.value).payments().list(limit, from, profile_id, test_mode).await;
+    let token = config.bearer_token()?;
+    let response = Mollie::build(&token.as_str()).payments().list(limit, from, profile_id, test_mode).await;
     match response {
         Ok(res) => list_payments_from_response(res),
         Err(e) => info!("{}", e),

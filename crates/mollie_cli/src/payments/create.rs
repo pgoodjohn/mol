@@ -3,7 +3,6 @@ use log::{debug, info, warn};
 use mollie_api::Mollie;
 use requestty::Question;
 use serde::Serialize;
-use mollie_api::Mollie;
 use colored::Colorize;
 
 pub async fn command(
@@ -39,7 +38,7 @@ pub async fn command(
 
     let token = config.bearer_token()?;
 
-    let response = Mollie::build(&token.value).payments().create_payment(&create_payment_request).await;
+    let response = Mollie::build(&token.as_str()).payments().create_payment(&create_payment_request).await;
 
     log::debug!("{:?}", response);
     match response {
@@ -82,12 +81,11 @@ pub async fn interactive(config: &MollieConfig, debug: &bool) -> anyhow::Result<
 
     let token = config.bearer_token()?;
 
-    let payment = Mollie::build(token.as_str())
+    let response = Mollie::build(token.as_str())
         .payments()
         .create_payment(&create_payment_request)
-        .await?;
+        .await;
 
-    let response = Mollie::build(&token.value).payments().create_payment(&create_payment_request).await;
 
     log::debug!("{:?}", response);
     match response {

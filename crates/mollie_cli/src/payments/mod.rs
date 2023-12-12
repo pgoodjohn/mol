@@ -133,7 +133,7 @@ pub async fn command(
         Some(PaymentsCommands::Cancel {
             id
         }) => {
-            cancel::command(id).await;
+            cancel::command(config, id).await?;
         }
         None => {}
     }

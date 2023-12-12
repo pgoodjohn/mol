@@ -15,8 +15,8 @@ pub async fn command(
         description: String::from(description),
     };
 
-    let token = super::config::get_bearer_token().unwrap();
-    let response = Mollie::build(&token.value).refunds().refund(&payment_id, &request).await;
+    let token = config.bearer_token()?;
+    let response = Mollie::build(&token.as_str()).refunds().refund(&payment_id, &request).await;
 
     match response {
         Ok(res) => log::info!("{}", res.to_string()),

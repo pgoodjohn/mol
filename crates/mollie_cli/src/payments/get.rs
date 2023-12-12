@@ -9,7 +9,7 @@ pub async fn command(config: &MollieConfig, payment_id: &String) -> anyhow::Resu
 
     let token = config.bearer_token()?;
 
-    let payment = Mollie::build(&token.value).payments().get_by_id(payment_id).await;
+    let payment = Mollie::build(&token.as_str()).payments().get_by_id(payment_id).await;
 
 
     debug!("{:?}", payment);
