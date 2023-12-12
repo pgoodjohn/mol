@@ -1,9 +1,8 @@
-use crate::config::MollieConfig;
+use crate::{config::MollieConfig, apiauth::CliAuthProvider};
 use mollie_api::Mollie;
 
 pub async fn command(config: &MollieConfig) -> anyhow::Result<()> {
-    let token = config.bearer_token().unwrap();
-    let response = Mollie::build(token.get_token())
+    let response = Mollie::build(&CliAuthProvider::new(config))
         .organizations()
         .me()
         .await?;

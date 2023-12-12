@@ -9,6 +9,7 @@
 use std::collections::HashMap;
 
 use api::organizations;
+use auth::AuthProvider;
 use log::{debug, error};
 use models::error_response::ErrorResponse;
 use reqwest::{header::HeaderMap, Client};
@@ -38,7 +39,7 @@ lazy_static::lazy_static! {
     );
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ApiClient<'a> {
     /// Async client
     client: Client,
@@ -47,12 +48,12 @@ pub struct ApiClient<'a> {
     base_url: &'a str,
 
     /// Auth token
-    auth_token: &'a str,
+    auth_provider: &'a dyn AuthProvider,
 }
 
 impl<'a> ApiClient<'a> {
     /// Create a new api (async) client instance.
-    pub fn new(base_url: &'static str, auth_token: &'a str) -> Self {
+    pub fn new(base_url: &'static str, auth_provider: &'a impl AuthProvider) -> Self {
         let client = Client::builder()
             .default_headers(ApiClient::default_headers())
             .build()
@@ -61,7 +62,7 @@ impl<'a> ApiClient<'a> {
         Self {
             client,
             base_url,
-            auth_token,
+            auth_provider,
         }
     }
 
@@ -73,6 +74,10 @@ impl<'a> ApiClient<'a> {
             reqwest::header::HeaderValue::from_static(&USER_AGENT),
         );
         headers
+    }
+
+    fn get_auth_token(&self) -> String {
+        return self.auth_provider.get_auth_token().get_token().to_owned()
     }
 
     fn build_url(&self, endpoint: &str) -> String {
@@ -90,7 +95,7 @@ impl<'a> ApiClient<'a> {
         let response = self
             .client
             .post(url)
-            .bearer_auth(self.auth_token)
+            .bearer_auth(self.get_auth_token())
             .json(&body)
             .send()
             .await?;
@@ -105,7 +110,7 @@ impl<'a> ApiClient<'a> {
     {
         let url = self.build_url(endpoint);
 
-        let mut req = self.client.get(url).bearer_auth(self.auth_token);
+        let mut req = self.client.get(url).bearer_auth(self.get_auth_token());
 
         if let Some(q) = query {
             req = req.query(&q);
@@ -141,17 +146,17 @@ impl<'a> ApiClient<'a> {
 }
 
 /// Mollie API client
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Mollie<'c> {
     api_client: ApiClient<'c>,
 }
 
 impl<'c> Mollie<'c> {
     /// Create a new Mollie instance
-    pub fn build(auth_token: &'c str) -> Self {
+    pub fn build(auth_provider: &'c impl AuthProvider) -> Self {
         debug!("Creating new Mollie instance. Base url: {}", API_BASE_URL);
         Self {
-            api_client: ApiClient::new(API_BASE_URL, auth_token),
+            api_client: ApiClient::new(API_BASE_URL, auth_provider),
         }
     }
 

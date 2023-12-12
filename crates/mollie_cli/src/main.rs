@@ -3,6 +3,7 @@ use config::FigmentConfigurationService;
 use log::debug;
 
 mod auth;
+mod apiauth;
 mod config;
 mod console;
 mod env;

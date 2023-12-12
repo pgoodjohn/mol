@@ -34,3 +34,7 @@ impl ApiBearerToken {
         matches!(self, ApiBearerToken::ConnectToken(_))
     }
 }
+
+pub trait AuthProvider {
+    fn get_auth_token(&self) -> ApiBearerToken;
+}
