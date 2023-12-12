@@ -1,6 +1,6 @@
-use super::config;
 use super::console;
 use super::mollie;
+use crate::config::ConfigurationService;
 use clap::{Parser, Subcommand};
 
 mod me;
@@ -25,12 +25,16 @@ pub enum OrgCommands {
     },
 }
 
-pub async fn command(command: &OrgCommand) -> anyhow::Result<()> {
+pub async fn command(
+    command: &OrgCommand,
+    config_service: &dyn ConfigurationService,
+) -> anyhow::Result<()> {
+    let config = config_service.read();
     match command.command.as_ref() {
         Some(OrgCommands::Permissions { granted }) => {
-            permissions::command(granted);
+            permissions::command(config, granted);
         }
-        None => me::command().await?,
+        None => me::command(config).await?,
     };
     Ok(())
 }

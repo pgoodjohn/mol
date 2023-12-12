@@ -1,14 +1,16 @@
+use crate::config::MollieConfig;
+
 use super::console;
 use super::mollie;
 use super::mollie::permissions::Permissions;
 use log::info;
 use pad::{Alignment, PadStr};
 
-pub fn command(filter_granted: &bool) {
+pub fn command(config: &MollieConfig, filter_granted: &bool) {
     let client = mollie::ApiClientBuilder::new()
         .blocking()
-        .url(super::config::api_url().unwrap())
-        .auth(super::config::get_bearer_token().unwrap())
+        .url(config.api.url.to_string())
+        .auth(config.bearer_token().unwrap())
         .spawn();
 
     let response = client.get_permissions();

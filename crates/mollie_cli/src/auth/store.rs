@@ -1,86 +1,56 @@
-use super::config;
-use log::{debug, info};
-use mollie_api::auth::{AccessToken, ApiKey, ApiKeyMode};
+use crate::config::{AccessCodeConfig, ApiKeysConfig, ConfigurationService};
+use mollie_api::auth::{AccessCode, ApiKey, ApiKeyMode};
 use requestty::Question;
 
-pub fn interactive() {
-    let new_api_key = ask_api_key().unwrap();
-
-    // TODO: Implement access token through interactive command
-    store_api_key(&new_api_key);
+pub struct Store<'config> {
+    config_service: &'config mut dyn ConfigurationService,
 }
 
-pub fn api_key(api_key: &String) -> mollie_api::Result<ApiKey> {
-    let new_api_key = ApiKey::from_string(String::from(api_key))?;
-    store_api_key(&new_api_key);
-
-    Ok(new_api_key)
-}
-
-pub fn access_token(access_token: &String) -> mollie_api::Result<AccessToken> {
-    let new_access_token = AccessToken::from_string(String::from(access_token))?;
-    store_access_token(&new_access_token);
-
-    Ok(new_access_token)
-}
-
-fn store_access_token(access_token: &AccessToken) {
-    let old_config = config::from_file().unwrap();
-
-    let mut new_config = old_config.clone();
-    new_config.access_token = Some(access_token.value.clone());
-
-    debug!("Old config: {:?}", old_config);
-    debug!("New config: {:?}", new_config);
-
-    config::save_to_file(new_config).unwrap();
-
-    info!("Configuration updated");
-}
-
-fn store_api_key(new_api_key: &ApiKey) {
-    let old_config = config::from_file().unwrap();
-
-    let mut new_config = old_config.clone();
-    match new_api_key.mode {
-        ApiKeyMode::Live => {
-            new_config.keys.live = Some(new_api_key.value.clone());
-        }
-        ApiKeyMode::Test => {
-            new_config.keys.test = Some(new_api_key.value.clone());
+impl<'config> Store<'config> {
+    pub fn new(config: &'config mut dyn ConfigurationService) -> Self {
+        Self {
+            config_service: config,
         }
     }
 
-    debug!("Old config: {:?}", old_config);
-    debug!("New config: {:?}", new_config);
+    pub fn interactive(&mut self) -> anyhow::Result<()> {
+        let new_api_key = self.ask_api_key()?;
+        self.store_api_key(new_api_key)
+    }
 
-    config::save_to_file(new_config).unwrap();
+    pub fn store_api_key(&mut self, new_api_key: ApiKey) -> anyhow::Result<()> {
+        self.config_service.update(&|config| {
+            let api_keys = config.auth.api_keys.get_or_insert(ApiKeysConfig::default());
+            match new_api_key.mode {
+                ApiKeyMode::Live => {
+                    api_keys.live = Some(new_api_key.clone());
+                }
+                ApiKeyMode::Test => {
+                    api_keys.test = Some(new_api_key.clone());
+                }
+            }
+        })?;
+        Ok(())
+    }
 
-    info!("Configuration updated");
-}
+    pub fn store_access_code(&mut self, new_access_code: AccessCode) -> anyhow::Result<()> {
+        self.config_service.update(&|config| {
+            config.auth.access_code = Some(AccessCodeConfig {
+                token: new_access_code.clone(),
+            });
+        })?;
+        Ok(())
+    }
 
-#[derive(Debug)]
-pub struct SorryCouldNotRetrieveApiKey {
-    pub error_message: String,
-}
+    fn ask_api_key(&self) -> anyhow::Result<ApiKey> {
+        let question = Question::input("api_key")
+            .message("Input your new API key")
+            .build();
 
-fn ask_api_key() -> Result<ApiKey, SorryCouldNotRetrieveApiKey> {
-    let question = Question::input("api_key")
-        .message("Input your new API key")
-        .build();
+        let answer = requestty::prompt_one(question)?
+            .try_into_string()
+            .map_err(|_| anyhow::anyhow!("Could not read API key"))?;
 
-    let answer = requestty::prompt_one(question);
-
-    match answer {
-        Ok(result) => {
-            let answer = result.as_string().unwrap();
-            // TODO: use result
-            ApiKey::from_string(String::from(answer)).map_err(|e| SorryCouldNotRetrieveApiKey {
-                error_message: format!("{}", e),
-            })
-        }
-        Err(_) => Err(SorryCouldNotRetrieveApiKey {
-            error_message: String::from("Could not retrieve API key"),
-        }),
+        Ok(ApiKey::try_from(answer)?)
     }
 }
