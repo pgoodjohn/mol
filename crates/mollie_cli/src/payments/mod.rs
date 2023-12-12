@@ -20,6 +20,9 @@ pub struct PaymentsCommmand {
     #[clap(long = "withResponse", global = true)]
     with_response: bool,
 
+    #[clap(long = "withRequest", global = true)]
+    with_request: bool,
+
     #[clap(subcommand)]
     command: Option<PaymentsCommands>,
 }
@@ -59,6 +62,9 @@ pub enum PaymentsCommands {
 
         #[clap(long)]
         profile_id: Option<String>,
+
+        #[clap(long = "withRequest", global = true)]
+        with_request: bool,
     },
     /// Get a payment's info
     #[clap(arg_required_else_help(true))]
@@ -107,10 +113,11 @@ pub async fn command(
             description,
             redirect_url,
             profile_id,
+            with_request,
         }) => {
             match interactive {
                 true => {
-                    return create::interactive(config, debug).await;
+                    return create::interactive(config, debug, *with_request).await;
                 }
                 false => {}
             }
@@ -123,6 +130,7 @@ pub async fn command(
                 redirect_url.as_ref(),
                 profile_id.as_ref(),
                 debug,
+                *with_request,
             )
             .await?;
         }
