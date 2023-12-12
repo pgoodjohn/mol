@@ -13,10 +13,11 @@ pub async fn command(payment_id: &String, amount: &f32, description: &String) ->
     let response = Mollie::build(&token.value).refunds().refund(&payment_id, &request).await;
 
     match response {
-        Ok(res) => log::info!("{}", res.to_string()),
-        Err(e) => log::info!("{:?}", e),
+        Ok(res) => debug!("{:?}", response.id),
+        Err(e) => debug!("{:?}", error),
     }
 
+    println!("{:#?}", response);
 
 
     return Ok(());

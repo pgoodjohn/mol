@@ -1,12 +1,11 @@
 use std::collections::HashMap;
-
 use serde::{Serialize, Deserialize};
 
 use super::{amount::Amount, link::Link};
 
 /// Organization model; More information:
 /// - <https://docs.mollie.com/reference/v2/organizations-api/get-organization#response>
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PaymentResource {
     /// Unique identifier of the organization

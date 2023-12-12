@@ -20,6 +20,8 @@ impl<'client> RefundsApi<'client> {
 
     pub async fn refund(&self, id: &str, body: &RefundPaymentRequest) -> crate::Result<RefundResource>{
         let endpoint = format!("/payments/{}/refunds", id);
-        self.api_client.post(&endpoint, body).await
+        let x = self.api_client.post(&endpoint, body).await;
+        log::debug!("{:?}", x);
+        return x;
     }
 }

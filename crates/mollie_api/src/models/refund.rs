@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-
+use std::fmt::Display;
 use serde::{Serialize, Deserialize};
 
 use super::{amount::Amount, link::Link};
@@ -23,3 +23,19 @@ pub struct RefundResource {
     #[serde(rename = "_links")]
     pub links: HashMap<String, Link>,
 }
+
+impl Display for RefundResource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[{}] {} | {} | {} | {} | {} |",
+            self.id,
+            self.status,
+            self.amount,
+            self.created_at,
+            self.description,
+            self.payment_id,
+        )
+    }
+}
+
