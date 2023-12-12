@@ -45,7 +45,7 @@ async fn main() -> anyhow::Result<()> {
         Some(Commands::Auth(command)) => auth::command(&command),
         Some(Commands::Balances(command)) => balances::command(&command).await?,
         Some(Commands::Org(command)) => org::command(&command).await?,
-        Some(Commands::Payments(command)) => payments::command(&command).await?,
+        Some(Commands::Payments(command)) => payments::command(&command).await,
         None => {}
     };
 
