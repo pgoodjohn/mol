@@ -5,7 +5,6 @@ use colored::Colorize;
 use colored_json::ToColoredJson;
 use log::{debug, info};
 use mollie_api::Mollie;
-use pad::{Alignment, PadStr};
 
 pub async fn command(
     config: &MollieConfig,
