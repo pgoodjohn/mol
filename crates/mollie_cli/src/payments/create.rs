@@ -3,6 +3,7 @@ use log::{debug, info, warn};
 use requestty::Question;
 use serde::Serialize;
 use mollie_api::Mollie;
+use colored::Colorize;
 
 
 pub async fn command(
@@ -94,7 +95,7 @@ pub async fn interactive(debug: &bool) -> anyhow::Result<()> {
 fn handle_payment_created_response(response: mollie_api::models::payment::PaymentResource) {
     match response.links.get("checkout") {
         Some(checkout_url) => {
-            info!("Pay this payment: {}", checkout_url.href);
+            info!("Pay this payment: {}", Colorize::blue(&*checkout_url.href));
             qr2term::print_qr(checkout_url.href.clone()).ok(/* only print qrcode if everything is fine */);
         },
         None => warn!("Couldn't find the checkout url!"),
