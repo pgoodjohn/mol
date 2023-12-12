@@ -5,6 +5,7 @@ use figment::{
     Figment,
 };
 use log::debug;
+use miette::miette;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::OnceLock;
@@ -51,6 +52,35 @@ impl FigmentConfigurationService {
             _ => str.as_str().replace("__", ".").into(),
         }
     }
+
+    fn create_diagnostic(error: figment::Error) -> miette::Error {
+        let source = error
+            .metadata
+            .and_then(|metadata| metadata.source)
+            .map(|source| source.to_string());
+
+        let path = error.path.join(".");
+
+        let help = if let Some(source) = source {
+            format!(
+                "A configuration value loaded from {} is invalid. Check the value at '{}'",
+                source, path,
+            )
+        } else {
+            format!(
+                "A configuration value that was passed as an environmental variable was invalid. Check the value at '{}'",
+                path,
+            )
+        };
+
+        miette!(
+            code = "config:load",
+            severity = miette::Severity::Error,
+            help = help,
+            "{}",
+            error.kind,
+        )
+    }
 }
 
 impl ConfigurationService for FigmentConfigurationService {
@@ -66,7 +96,8 @@ impl ConfigurationService for FigmentConfigurationService {
             figment
                 .merge(Env::prefixed("MOLLIE_").map(Self::map_env_variables))
                 .extract::<MollieConfig>()
-                .unwrap()
+                .map_err(Self::create_diagnostic)
+                .expect("Failed to load configuration, error code:")
         })
     }
 
