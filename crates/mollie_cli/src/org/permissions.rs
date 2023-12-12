@@ -1,12 +1,19 @@
 use crate::config::MollieConfig;
 
-use log::info;
 use colored_json::ToColoredJson;
+use log::info;
+use mollie_api::{models::permission::PermissionsEmbeddedResource, Mollie};
 use pad::{Alignment, PadStr};
-use mollie_api::{Mollie, models::permission::PermissionsEmbeddedResource};
 
-pub async fn command(config: &MollieConfig, filter_granted: &bool, with_response: bool) -> anyhow::Result<()> {
-    let permissions = Mollie::build(&config.bearer_token().unwrap().as_str()).permissions().list().await?;
+pub async fn command(
+    config: &MollieConfig,
+    filter_granted: &bool,
+    with_response: bool,
+) -> anyhow::Result<()> {
+    let permissions = Mollie::build(&config.bearer_token().unwrap().as_str())
+        .permissions()
+        .list()
+        .await?;
 
     if *filter_granted {
         list_granted_permissions(&permissions.embedded)
@@ -15,7 +22,8 @@ pub async fn command(config: &MollieConfig, filter_granted: &bool, with_response
     }
 
     if with_response {
-        let pretty_json = jsonxf::pretty_print(&serde_json::to_string(&permissions).unwrap()).unwrap();
+        let pretty_json =
+            jsonxf::pretty_print(&serde_json::to_string(&permissions).unwrap()).unwrap();
         info!("{}", pretty_json.to_colored_json_auto().unwrap());
     }
 

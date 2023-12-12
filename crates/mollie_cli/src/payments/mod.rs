@@ -6,11 +6,11 @@ use clap::{Parser, Subcommand};
 use colored::Colorize;
 use mollie_api::models::payment::PaymentResource;
 use strum::Display;
+mod cancel;
 mod create;
 mod get;
 mod list;
 mod refund;
-mod cancel;
 
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
@@ -75,7 +75,7 @@ pub enum PaymentsCommands {
         #[clap(short, long)]
         test_mode: Option<bool>,
         #[clap(short, long)]
-        status: Option<Status>
+        status: Option<Status>,
     },
     /// Refund a payment
     #[clap(arg_required_else_help(true))]
@@ -91,9 +91,7 @@ pub enum PaymentsCommands {
 
     ///Cancel a Payment
     #[clap(arg_required_else_help(true))]
-    Cancel {
-        id: String
-    }
+    Cancel { id: String },
 }
 
 pub async fn command(
@@ -139,18 +137,32 @@ pub async fn command(
             test_mode,
             status,
         }) => {
-            list::command(config, limit, from, profile_id, test_mode, payments_command.with_response, status).await?;
+            list::command(
+                config,
+                limit,
+                from,
+                profile_id,
+                test_mode,
+                payments_command.with_response,
+                status,
+            )
+            .await?;
         }
         Some(PaymentsCommands::Refund {
             id,
             amount,
             description,
         }) => {
-            refund::command(config, id, amount, description, payments_command.with_response ).await?;
+            refund::command(
+                config,
+                id,
+                amount,
+                description,
+                payments_command.with_response,
+            )
+            .await?;
         }
-        Some(PaymentsCommands::Cancel {
-            id
-        }) => {
+        Some(PaymentsCommands::Cancel { id }) => {
             cancel::command(config, id, payments_command.with_response).await?;
         }
         None => {}
@@ -171,12 +183,15 @@ pub struct Payment {
 
 impl Payment {
     pub fn header() -> String {
-        format!("|{:^14} {:^8} {:^4} {:^12} {:^26} {:^30} {} |", "ID", "STATUS", "MODE", "AMOUNT", "CREATED_AT", "DESCITPION", "REDIRECT_URL")
+        format!(
+            "|{:^14} {:^8} {:^4} {:^12} {:^26} {:^30} {} |",
+            "ID", "STATUS", "MODE", "AMOUNT", "CREATED_AT", "DESCITPION", "REDIRECT_URL"
+        )
     }
 }
 
 impl From<PaymentResource> for Payment {
-    fn from(payment: PaymentResource) -> Self{
+    fn from(payment: PaymentResource) -> Self {
         Self {
             id: payment.id,
             mode: payment.mode,
@@ -195,26 +210,62 @@ impl Display for Payment {
             f,
             "{} | {} | {} | {} | {} | {} | {}  ",
             match self.status.as_str() {
-                "open" => { Colorize::blue(&*self.id) },
-                "cancelled" => { Colorize::yellow(&*self.id) },
-                "pending" => { Colorize::blue(&*self.id) },
-                "authorized" => { Colorize::blue(&*self.id) }, 
-                "expired" => { Colorize::yellow(&*self.id) }, 
-                "failed" => { Colorize::red(&*self.id) }, 
-                "paid" => { Colorize::green(&*self.id) },
-                &_ => {Colorize::blink(&*self.id)},
+                "open" => {
+                    Colorize::blue(&*self.id)
+                }
+                "cancelled" => {
+                    Colorize::yellow(&*self.id)
+                }
+                "pending" => {
+                    Colorize::blue(&*self.id)
+                }
+                "authorized" => {
+                    Colorize::blue(&*self.id)
+                }
+                "expired" => {
+                    Colorize::yellow(&*self.id)
+                }
+                "failed" => {
+                    Colorize::red(&*self.id)
+                }
+                "paid" => {
+                    Colorize::green(&*self.id)
+                }
+                &_ => {
+                    Colorize::blink(&*self.id)
+                }
             },
             match self.status.as_str() {
-                "open" => { Colorize::blue(&*self.status) },
-                "cancelled" => { Colorize::yellow(&*self.status) },
-                "pending" => { Colorize::blue(&*self.status) },
-                "authorized" => { Colorize::blue(&*self.status) }, 
-                "expired" => { Colorize::yellow(&*self.status) }, 
-                "failed" => { Colorize::red(&*self.status) }, 
-                "paid" => { Colorize::green(&*self.status) },
-                &_ => {Colorize::blink(&*self.status)},
+                "open" => {
+                    Colorize::blue(&*self.status)
+                }
+                "cancelled" => {
+                    Colorize::yellow(&*self.status)
+                }
+                "pending" => {
+                    Colorize::blue(&*self.status)
+                }
+                "authorized" => {
+                    Colorize::blue(&*self.status)
+                }
+                "expired" => {
+                    Colorize::yellow(&*self.status)
+                }
+                "failed" => {
+                    Colorize::red(&*self.status)
+                }
+                "paid" => {
+                    Colorize::green(&*self.status)
+                }
+                &_ => {
+                    Colorize::blink(&*self.status)
+                }
             },
-            if self.mode == "live" { Colorize::bright_green("LIVE") } else { Colorize::bright_black("TEST") },
+            if self.mode == "live" {
+                Colorize::bright_green("LIVE")
+            } else {
+                Colorize::bright_black("TEST")
+            },
             Colorize::green(&*self.amount.to_string()),
             Colorize::blue(&*self.created_at),
             self.description,

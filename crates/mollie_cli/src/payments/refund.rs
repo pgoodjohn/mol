@@ -1,6 +1,6 @@
 use crate::config::MollieConfig;
-use mollie_api::Mollie;
 use colored_json::ToColoredJson;
+use mollie_api::Mollie;
 
 pub async fn command(
     config: &MollieConfig,
@@ -18,16 +18,20 @@ pub async fn command(
     };
 
     let token = config.bearer_token()?;
-    let response = Mollie::build(&token.as_str()).refunds().refund(&payment_id, &request).await;
+    let response = Mollie::build(&token.as_str())
+        .refunds()
+        .refund(&payment_id, &request)
+        .await;
 
     match response {
         Ok(res) => {
             log::info!("{}", res.to_string());
             if with_response {
-                let pretty_json = jsonxf::pretty_print(&serde_json::to_string(&res).unwrap()).unwrap();
+                let pretty_json =
+                    jsonxf::pretty_print(&serde_json::to_string(&res).unwrap()).unwrap();
                 log::info!("{}", pretty_json.to_colored_json_auto().unwrap());
             }
-        },
+        }
         Err(e) => log::info!("{:?}", e),
     }
 

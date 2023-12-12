@@ -8,7 +8,7 @@
 
 use std::collections::HashMap;
 
-use api::{organizations, payments, refunds, balances, permissions};
+use api::{balances, organizations, payments, permissions, refunds};
 use log::{debug, error};
 use models::error_response::ErrorResponse;
 use reqwest::{header::HeaderMap, Client};
@@ -118,7 +118,7 @@ impl<'a> ApiClient<'a> {
     /// Performa a delete request using default headers and auth token
     pub async fn delete<R>(&self, endpoint: &str, query: Option<HashMap<&str, String>>) -> Result<R>
     where
-        R: for<'de> Deserialize<'de>
+        R: for<'de> Deserialize<'de>,
     {
         let url = self.build_url(endpoint);
         let mut req = self.client.delete(url).bearer_auth(self.auth_token);
@@ -181,7 +181,7 @@ impl<'c> Mollie<'c> {
     pub fn refunds(&self) -> refunds::RefundsApi {
         refunds::RefundsApi::new(&self.api_client)
     }
-  
+
     pub fn balances(&self) -> balances::BalancesApi {
         balances::BalancesApi::new(&self.api_client)
     }
@@ -224,7 +224,8 @@ mod client_tests {
 
     #[tokio::test]
     async fn test_balances_api_authorizes() {
-        let auth_token = std::env::var("MOLLIE_ACCESS_TOKEN").expect("Please set a valid access token");
+        let auth_token =
+            std::env::var("MOLLIE_ACCESS_TOKEN").expect("Please set a valid access token");
         let client = Mollie::build(&auth_token);
 
         let balances_response = client.balances().list(None, &None).await.unwrap();

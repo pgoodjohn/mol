@@ -11,7 +11,6 @@ mod logger;
 mod org;
 mod payments;
 
-
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
 struct Cli {
@@ -25,7 +24,7 @@ struct Cli {
 
     /// Print the API response after performing an API call
     #[clap(long = "withResponse", global = true)]
-    with_response: bool
+    with_response: bool,
 }
 
 #[derive(Subcommand)]

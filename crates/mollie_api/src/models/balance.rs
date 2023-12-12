@@ -1,10 +1,10 @@
-use serde::{Deserialize, Serialize};
 use crate::models::amount::Amount;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct BalancesListResource {
     pub count: i32,
-    #[serde(rename(deserialize = "_embedded", serialize="_embedded"))]
+    #[serde(rename(deserialize = "_embedded", serialize = "_embedded"))]
     pub embedded: EmbeddedBalanceResource,
 }
 

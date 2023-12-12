@@ -1,11 +1,9 @@
 //! Balances API module
 //!
 //! Used to retrieve information about your balances.
-use std::collections::HashMap;
-use crate::{
-    ApiClient,
-};
 use crate::models::balance::{BalanceResource, BalancesListResource};
+use crate::ApiClient;
+use std::collections::HashMap;
 
 /// [Balances Api](https://docs.mollie.com/reference/v2/balances-api/overview)
 /// Used to retrieve information about a balance.
@@ -19,11 +17,10 @@ impl<'client> BalancesApi<'client> {
         Self { api_client }
     }
 
-    pub async fn get_by_id(
-        &self,
-        balance_id: &String,
-    ) -> crate::Result<BalanceResource> {
-        self.api_client.get(&format!("/balances/{}", balance_id), None).await
+    pub async fn get_by_id(&self, balance_id: &String) -> crate::Result<BalanceResource> {
+        self.api_client
+            .get(&format!("/balances/{}", balance_id), None)
+            .await
     }
 
     pub async fn list(

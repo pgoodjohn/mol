@@ -2,7 +2,7 @@
 //!
 //! Used to refund payments
 use crate::{
-    models::{refund::{RefundResource, RefundPaymentRequest}},
+    models::refund::{RefundPaymentRequest, RefundResource},
     ApiClient,
 };
 
@@ -18,7 +18,11 @@ impl<'client> RefundsApi<'client> {
         Self { api_client }
     }
 
-    pub async fn refund(&self, id: &str, body: &RefundPaymentRequest) -> crate::Result<RefundResource>{
+    pub async fn refund(
+        &self,
+        id: &str,
+        body: &RefundPaymentRequest,
+    ) -> crate::Result<RefundResource> {
         let endpoint = format!("/payments/{}/refunds", id);
         let x = self.api_client.post(&endpoint, body).await;
         log::debug!("{:?}", x);
