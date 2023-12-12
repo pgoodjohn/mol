@@ -56,7 +56,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: mol-${{ matrix.os }}-${{ matrix.arch }}
-        path: target/${{ matrix.target }}/release/mol
+        path: target/${{ matrix.target }}/release/mol-${{ matrix.os }}-${{ matrix.arch }}
 
   # New job for creating the release and uploading all artifacts
   create_release:
@@ -71,8 +71,8 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          /home/runner/work/mol/mol/mol-ubuntu-latest-x86_64/mol-ubuntu-latest-x86_64
-          /home/runner/work/mol/mol/mol-macos-latest-x86_64/mol-macos-latest-x86_64
+          mol-ubuntu-latest-x86_64
+          mol-macos-latest-x86_64
           /home/runner/work/mol/mol/mol-macos-latest-aarch64/mol-ubuntu-latest-aarch64
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
