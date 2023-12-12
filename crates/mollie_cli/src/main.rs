@@ -17,12 +17,15 @@ mod payments;
 #[derive(Parser)]
 #[clap(version, about, arg_required_else_help(true))]
 struct Cli {
+    /// The Mollie API you want to invoke
     #[clap(subcommand)]
     command: Option<Commands>,
 
+    /// Enable debug logging
     #[clap(short, long, global = true)]
     debug: bool,
 
+    /// Print the API response after performing an API call
     #[clap(long = "withResponse", global = true)]
     with_response: bool
 }

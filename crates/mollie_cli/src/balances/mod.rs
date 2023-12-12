@@ -42,7 +42,7 @@ pub async fn command(
 ) -> anyhow::Result<()> {
     let config = config_service.read();
     match command.command.as_ref() {
-        Some(BalanceCommands::Get { id }) => get::command(config, id).await,
+        Some(BalanceCommands::Get { id }) => get::command(config, id, command.with_response).await,
         Some(BalanceCommands::List { limit, from }) => list::command(config, limit, from, command.with_response).await,
         None => Ok(()),
     }
