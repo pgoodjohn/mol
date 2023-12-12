@@ -6,7 +6,6 @@ use mollie_api::auth::{AccessCode, ApiKey};
 use oauth2::{basic::BasicClient, ClientId, AuthUrl, TokenUrl, ClientSecret, AuthorizationCode, reqwest::async_http_client, CsrfToken, Scope, TokenResponse};
 use url::Url;
 
-mod oauth;
 mod store;
 
 #[derive(Parser)]
