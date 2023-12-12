@@ -184,6 +184,7 @@ impl Payment {
         format!(
             "|{:^14} {:^8} {:^4} {:^12} {:^26} {:^30} {} |",
             "ID", "STATUS", "MODE", "AMOUNT", "CREATED_AT", "DESCITPION", "REDIRECT_URL"
+        )
     }
 }
 
