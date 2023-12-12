@@ -48,19 +48,19 @@ pub enum PaymentsCommands {
         #[clap(short, long)]
         interactive: bool,
 
-        #[clap(long)]
+        #[clap(long, required_unless_present("interactive"))]
         currency: Option<String>,
 
-        #[clap(long)]
+        #[clap(long, required_unless_present("interactive"))]
         amount: Option<String>,
 
-        #[clap(long)]
+        #[clap(long, required_unless_present("interactive"))]
         description: Option<String>,
 
-        #[clap(long)]
+        #[clap(long, required_unless_present("interactive"))]
         redirect_url: Option<String>,
 
-        #[clap(long)]
+        #[clap(long, required_unless_present("interactive"))]
         profile_id: Option<String>,
 
         #[clap(long = "withRequest", global = true)]

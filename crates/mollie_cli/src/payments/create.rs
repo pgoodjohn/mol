@@ -1,5 +1,4 @@
-use crate::config::MollieConfig;
-use colored::Colorize;
+use crate::{config::MollieConfig, payments::create};
 use log::{debug, info, warn};
 use mollie_api::Mollie;
 use requestty::Question;
@@ -39,8 +38,14 @@ pub async fn command(
         ask_confirmation();
     }
 
-    let token = config.bearer_token()?;
+    debug!("{:?}", create_payment_request);
 
+    if with_request {
+        let pretty_json = jsonxf::pretty_print(&serde_json::to_string(&create_payment_request).unwrap()).unwrap();
+        info!("{}", pretty_json.to_colored_json_auto().unwrap());
+    }
+
+    let token = config.bearer_token()?;
     let response = Mollie::build(&token.as_str())
         .payments()
         .create_payment(&create_payment_request)
