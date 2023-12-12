@@ -1,3 +1,4 @@
+use chrono::DateTime;
 use log::debug;
 use mollie_api::auth::{AccessCode, ApiBearerToken, ApiKey};
 use serde::{Deserialize, Serialize};
@@ -76,6 +77,7 @@ pub struct ConnectConfig {
     pub client_secret: String,
     pub refresh_token: Option<String>,
     pub access_token: Option<String>,
+    pub expires_at: Option<DateTime<chrono::Utc>>,
 }
 
 fn default_api_config() -> ApiConfig {
