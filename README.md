@@ -89,25 +89,25 @@ $ mol auth get permissions
 
 ### Payments
 
-`mol` can help you check, create and refund payments through the Mollie API. You can do so with the `mol payments` command:
+`mol` can help you check, create, cancel, and refund payments through the Mollie API. You can do so with the `mol payments` command:
 
 ```
 $ mol payments
-mol-payments 0.1.0
 Do things with Payments
 
-USAGE:
-    mol payments [OPTIONS] [SUBCOMMAND]
+Usage: mol payments [OPTIONS] [COMMAND]
 
-OPTIONS:
-    -d, --debug
-    -h, --help       Print help information
-    -V, --version    Print version information
+Commands:
+  create  Create a new payment
+  get     Get a payment's info
+  list    List payments
+  refund  Refund a payment
+  cancel  Cancel a Payment
+  help    Print this message or the help of the given subcommand(s)
 
-SUBCOMMANDS:
-    create    Create a new payment
-    get       Get a payment's info
-    help      Print this message or the help of the given subcommand(s)
-    list      List payments
-    refund    Refund a payment
+Options:
+  -d, --debug
+      --withResponse
+  -h, --help          Print help
+  -V, --version       Print version
 ```
