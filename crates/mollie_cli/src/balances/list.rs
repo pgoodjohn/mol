@@ -10,7 +10,7 @@ pub async fn command(
     limit: &Option<i32>,
     from: &Option<String>,
     with_response: bool,
-) -> anyhow::Result<()> {
+) -> miette::Result<()> {
     debug!("Listing balances");
     let token = config.bearer_token()?;
     let balances = Mollie::build(token.as_str())

@@ -1,9 +1,9 @@
 use crate::config::MollieConfig;
+use colored::Colorize;
 use log::{debug, info, warn};
 use mollie_api::Mollie;
 use requestty::Question;
 use serde::Serialize;
-use colored::Colorize;
 
 pub async fn command(
     config: &MollieConfig,
@@ -13,7 +13,7 @@ pub async fn command(
     input_redirect_url: Option<&String>,
     input_profile_id: Option<&String>,
     debug: &bool,
-) -> anyhow::Result<()> {
+) -> miette::Result<()> {
     debug!("Running Create Payment Command");
     let currency = String::from(input_currency.unwrap());
     let description = String::from(input_description.unwrap());
@@ -38,7 +38,10 @@ pub async fn command(
 
     let token = config.bearer_token()?;
 
-    let response = Mollie::build(&token.as_str()).payments().create_payment(&create_payment_request).await;
+    let response = Mollie::build(&token.as_str())
+        .payments()
+        .create_payment(&create_payment_request)
+        .await;
 
     log::debug!("{:?}", response);
     match response {
@@ -46,10 +49,9 @@ pub async fn command(
         Err(e) => info!("{}", e),
     }
     return Ok(());
-   
 }
 
-pub async fn interactive(config: &MollieConfig, debug: &bool) -> anyhow::Result<()> {
+pub async fn interactive(config: &MollieConfig, debug: &bool) -> miette::Result<()> {
     debug!("Running interactive Create Payment Command");
 
     // Currency
@@ -86,14 +88,12 @@ pub async fn interactive(config: &MollieConfig, debug: &bool) -> anyhow::Result<
         .create_payment(&create_payment_request)
         .await;
 
-
     log::debug!("{:?}", response);
     match response {
         Ok(payment) => handle_payment_created_response(payment),
         Err(e) => info!("{}", e),
     }
     return Ok(());
- 
 }
 
 fn handle_payment_created_response(response: mollie_api::models::payment::PaymentResource) {

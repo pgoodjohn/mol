@@ -1,4 +1,5 @@
 use crate::config::{AccessCodeConfig, ApiKeysConfig, ConfigurationService};
+use miette::{miette, IntoDiagnostic};
 use mollie_api::auth::{AccessCode, ApiKey, ApiKeyMode};
 use requestty::Question;
 
@@ -13,12 +14,12 @@ impl<'config> Store<'config> {
         }
     }
 
-    pub fn interactive(&mut self) -> anyhow::Result<()> {
+    pub fn interactive(&mut self) -> miette::Result<()> {
         let new_api_key = self.ask_api_key()?;
         self.store_api_key(new_api_key)
     }
 
-    pub fn store_api_key(&mut self, new_api_key: ApiKey) -> anyhow::Result<()> {
+    pub fn store_api_key(&mut self, new_api_key: ApiKey) -> miette::Result<()> {
         self.config_service.update(&|config| {
             let api_keys = config.auth.api_keys.get_or_insert(ApiKeysConfig::default());
             match new_api_key.mode {
@@ -33,7 +34,7 @@ impl<'config> Store<'config> {
         Ok(())
     }
 
-    pub fn store_access_code(&mut self, new_access_code: AccessCode) -> anyhow::Result<()> {
+    pub fn store_access_code(&mut self, new_access_code: AccessCode) -> miette::Result<()> {
         self.config_service.update(&|config| {
             config.auth.access_code = Some(AccessCodeConfig {
                 token: new_access_code.clone(),
@@ -42,14 +43,15 @@ impl<'config> Store<'config> {
         Ok(())
     }
 
-    fn ask_api_key(&self) -> anyhow::Result<ApiKey> {
+    fn ask_api_key(&self) -> miette::Result<ApiKey> {
         let question = Question::input("api_key")
             .message("Input your new API key")
             .build();
 
-        let answer = requestty::prompt_one(question)?
+        let answer = requestty::prompt_one(question)
+            .into_diagnostic()?
             .try_into_string()
-            .map_err(|_| anyhow::anyhow!("Could not read API key"))?;
+            .map_err(|_| miette!("Could not read API key"))?;
 
         Ok(ApiKey::try_from(answer)?)
     }
