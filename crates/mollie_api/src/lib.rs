@@ -8,7 +8,7 @@
 
 use std::collections::HashMap;
 
-use api::{balances, organizations};
+use api::{organizations, payments, refunds, balances};
 use log::{debug, error};
 use models::error_response::ErrorResponse;
 use reqwest::{header::HeaderMap, Client};
@@ -130,7 +130,6 @@ impl<'a> ApiClient<'a> {
 
         let status = response.status();
         let raw_json = response.json::<ErrorResponse>().await?;
-
         Err(Error::ApiError {
             status: status.as_u16(),
             title: raw_json.title.to_string(),
@@ -160,6 +159,14 @@ impl<'c> Mollie<'c> {
         organizations::OrganizationsApi::new(&self.api_client)
     }
 
+    pub fn payments(&self) -> payments::PaymentsApi {
+        payments::PaymentsApi::new(&self.api_client)
+    }
+
+    pub fn refunds(&self) -> refunds::RefundsApi {
+        refunds::RefundsApi::new(&self.api_client)
+    }
+  
     pub fn balances(&self) -> balances::BalancesApi {
         balances::BalancesApi::new(&self.api_client)
     }

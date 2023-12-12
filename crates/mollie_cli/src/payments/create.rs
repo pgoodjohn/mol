@@ -1,27 +1,26 @@
 use super::config;
-use super::console;
-use super::mollie;
-use super::mollie::payments::PaymentsApi;
 use log::{debug, info, warn};
 use requestty::Question;
 use serde::Serialize;
+use mollie_api::Mollie;
 
-pub fn command(
+
+pub async fn command(
     input_currency: Option<&String>,
     input_amount: Option<&String>,
     input_description: Option<&String>,
     input_redirect_url: Option<&String>,
     input_profile_id: Option<&String>,
     debug: &bool,
-) {
+) -> anyhow::Result<()> {
     debug!("Running Create Payment Command");
     let currency = String::from(input_currency.unwrap());
     let description = String::from(input_description.unwrap());
     let redirect_url = String::from(input_redirect_url.unwrap());
     let profile_id = Some(String::from(input_profile_id.unwrap()));
 
-    let create_payment_request = super::mollie::payments::CreatePaymentRequest {
-        amount: super::mollie::payments::Amount {
+    let create_payment_request = mollie_api::models::payment::CreatePaymentRequest {
+        amount: mollie_api::models::amount::Amount {
             value: format!("{:.2}", input_amount.unwrap().parse::<f64>().unwrap()),
             currency,
         },
@@ -36,19 +35,17 @@ pub fn command(
         ask_confirmation();
     }
 
-    let client = mollie::ApiClientBuilder::new()
-        .blocking()
-        .url(super::config::api_url().unwrap())
-        .auth(super::config::get_bearer_token().unwrap())
-        .spawn();
+    let token = super::config::get_bearer_token().unwrap();
 
-    match client.create_payment(create_payment_request) {
-        Ok(response) => handle_payment_created_response(response),
-        Err(e) => console::handle_mollie_client_error(e),
-    }
+    let payment = Mollie::build(&token.value).payments().create_payment(&create_payment_request).await?;
+
+    log::debug!("{:?}", payment);
+    
+    return Ok(handle_payment_created_response(payment));
+    
 }
 
-pub fn interactive(debug: &bool) {
+pub async fn interactive(debug: &bool) -> anyhow::Result<()> {
     debug!("Running interactive Create Payment Command");
 
     // Currency
@@ -62,8 +59,8 @@ pub fn interactive(debug: &bool) {
     // Webhook (Optional fields [...])
     // Profile ID - prompted only if auth is via access token
     let profile_id = ask_profile_id().unwrap();
-    let create_payment_request = super::mollie::payments::CreatePaymentRequest {
-        amount: super::mollie::payments::Amount {
+    let create_payment_request = mollie_api::models::payment::CreatePaymentRequest {
+        amount: mollie_api::models::amount::Amount {
             currency: amount.currency,
             value: amount.value,
         },
@@ -78,19 +75,15 @@ pub fn interactive(debug: &bool) {
         ask_confirmation();
     }
 
-    let client = mollie::ApiClientBuilder::new()
-        .blocking()
-        .url(super::config::api_url().unwrap())
-        .auth(super::config::get_bearer_token().unwrap())
-        .spawn();
+    let token = super::config::get_bearer_token().unwrap();
 
-    match client.create_payment(create_payment_request) {
-        Ok(response) => handle_payment_created_response(response),
-        Err(e) => console::handle_mollie_client_error(e),
-    }
+    let payment = Mollie::build(&token.value).payments().create_payment(&create_payment_request).await?;
+    
+    log::debug!("{:?}", payment);
+    return Ok(handle_payment_created_response(payment));
 }
 
-fn handle_payment_created_response(response: super::mollie::payments::PaymentResource) {
+fn handle_payment_created_response(response: mollie_api::models::payment::PaymentResource) {
     match response.links.get("checkout") {
         Some(checkout_url) => info!("Pay this payment: {}", checkout_url.href),
         None => warn!("Couldn't find the checkout url!"),

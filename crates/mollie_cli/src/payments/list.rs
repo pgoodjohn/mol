@@ -1,33 +1,21 @@
-use super::console;
-use super::mollie;
-use super::mollie::payments::PaymentsApi;
 use log::{debug, info};
 use pad::{Alignment, PadStr};
+use mollie_api::Mollie;
 
-pub fn command(limit: &Option<i32>, from: &Option<String>) {
+pub async fn command(limit: &Option<i32>, from: &Option<String>, profile_id: &Option<String>, test_mode: &Option<bool>)-> anyhow::Result<()> {
     debug!("Listing 10 Payments");
-
-    let client = mollie::ApiClientBuilder::new()
-        .blocking()
-        .url(super::config::api_url().unwrap())
-        .auth(super::config::get_bearer_token().unwrap())
-        .spawn();
-
-    let response = client.list_payments(*limit, from);
-
-    match response {
-        Ok(success) => list_payments_from_response(success),
-        Err(err) => console::handle_mollie_client_error(err),
-    }
+    let token = super::config::get_bearer_token().unwrap();
+    let response = Mollie::build(&token.value).payments().list(limit, from, profile_id, test_mode).await?;
+    //let response = client.list_payments(*limit, from);
+    list_payments_from_response(response);    
+    return Ok(());
 }
 
-fn list_payments_from_response(response: super::mollie::payments::ListPaymentsResponse) {
-    let mut i = 0;
-    for payment in response.embedded.payments {
-        i += 1;
+fn list_payments_from_response(response: mollie_api::models::payment::PaymentsListResource) {
+    response.embedded.payments.iter().enumerate().for_each(|(index, payment)|{
         info!(
             "{:2}. | {} | {} {} | {} | {}",
-            i,
+            index,
             payment.id,
             payment
                 .amount
@@ -37,5 +25,6 @@ fn list_payments_from_response(response: super::mollie::payments::ListPaymentsRe
             payment.status,
             payment.created_at
         );
-    }
+    });
 }
+
