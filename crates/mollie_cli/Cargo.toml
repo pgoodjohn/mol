@@ -27,6 +27,7 @@ colored = "2.1.0"
 qr2term = "0.3.1"
 figment = { version = "0.10", features = ["toml", "env", "test"] }
 url = { version = "2", features = ["serde"] }
+miette = {  version = "5", features = ["fancy"] }
 
 env_logger = { version = "0.10" }
 pad = { version = "0.1"}
