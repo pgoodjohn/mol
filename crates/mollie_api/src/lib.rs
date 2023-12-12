@@ -8,7 +8,7 @@
 
 use std::collections::HashMap;
 
-use api::{organizations, payments, refunds, balances};
+use api::{organizations, payments, refunds, balances, permissions};
 use log::{debug, error};
 use models::error_response::ErrorResponse;
 use reqwest::{header::HeaderMap, Client};
@@ -169,6 +169,10 @@ impl<'c> Mollie<'c> {
   
     pub fn balances(&self) -> balances::BalancesApi {
         balances::BalancesApi::new(&self.api_client)
+    }
+
+    pub fn permissions(&self) -> permissions::PermissionsApi {
+        permissions::PermissionsApi::new(&self.api_client)
     }
 }
 

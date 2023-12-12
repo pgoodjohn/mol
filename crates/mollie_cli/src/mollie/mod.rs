@@ -7,7 +7,6 @@ use std::collections::HashMap;
 pub mod errors;
 pub mod organizations;
 pub mod payments;
-pub mod permissions;
 pub mod refunds;
 
 #[derive(Deserialize, Debug)]
