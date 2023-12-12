@@ -181,4 +181,16 @@ mod client_tests {
             }
         }
     }
+
+    #[tokio::test]
+    async fn test_organization_api_authorizes() {
+        let auth_token = std::env::var("MOLLIE_ACCESS_TOKEN").expect("Please set a valid access token");
+        let expected_organization_id = std::env::var("MOLLIE_ORGANIZATION_ID").expect("Please set an organization id");
+
+        let client = Mollie::build(&auth_token);
+
+        let organization_response = client.organizations().me().await.unwrap();
+
+        assert_eq!(expected_organization_id, organization_response.id);
+    }
 }
