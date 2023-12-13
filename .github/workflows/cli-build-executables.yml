@@ -54,7 +54,7 @@ jobs:
 
     - name: Rename Output File
       run: |
-          mv target/${{ matrix.target }}/release/my_project target/${{ matrix.target }}/release/my_project-${{ matrix.os }}-${{ matrix.arch }}
+          mv target/${{ matrix.target }}/release/mol target/${{ matrix.target }}/release/mol-${{ matrix.os }}-${{ matrix.arch }}
   
 
     - name: Upload Artifact
