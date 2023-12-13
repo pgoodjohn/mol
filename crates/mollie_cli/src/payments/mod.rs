@@ -65,6 +65,12 @@ pub enum PaymentsCommands {
 
         #[clap(long = "withRequest", global = true)]
         with_request: bool,
+
+        #[clap(long = "withResponse", global = true)]
+        with_response: bool,
+
+        #[clap(long = "qr")]
+        qr: bool,
     },
     /// Get a payment's info
     #[clap(arg_required_else_help(true))]
@@ -114,10 +120,12 @@ pub async fn command(
             redirect_url,
             profile_id,
             with_request,
+            with_response,
+            qr,
         }) => {
             match interactive {
                 true => {
-                    return create::interactive(config, debug, *with_request).await;
+                    return create::interactive(config, debug, *with_request, *with_response, *qr).await;
                 }
                 false => {}
             }
@@ -131,6 +139,8 @@ pub async fn command(
                 profile_id.as_ref(),
                 debug,
                 *with_request,
+                *with_response,
+                *qr,
             )
             .await?;
         }

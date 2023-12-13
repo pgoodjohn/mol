@@ -15,6 +15,8 @@ pub async fn command(
     input_profile_id: Option<&String>,
     debug: &bool,
     with_request: bool,
+    with_response: bool,
+    qr: bool,
 ) -> miette::Result<()> {
     debug!("Running Create Payment Command");
     let currency = String::from(input_currency.unwrap());
@@ -53,13 +55,13 @@ pub async fn command(
 
     log::debug!("{:?}", response);
     match response {
-        Ok(payment) => handle_payment_created_response(payment),
+        Ok(payment) => handle_payment_created_response(payment, with_response, qr),
         Err(e) => info!("{}", e),
     }
     return Ok(());
 }
 
-pub async fn interactive(config: &MollieConfig, debug: &bool, with_request: bool) -> miette::Result<()> {
+pub async fn interactive(config: &MollieConfig, debug: &bool, with_request: bool, with_response: bool, qr: bool) -> miette::Result<()> {
     debug!("Running interactive Create Payment Command");
 
     // Currency
@@ -103,19 +105,26 @@ pub async fn interactive(config: &MollieConfig, debug: &bool, with_request: bool
 
     log::debug!("{:?}", response);
     match response {
-        Ok(payment) => handle_payment_created_response(payment),
+        Ok(payment) => handle_payment_created_response(payment, with_response, qr),
         Err(e) => info!("{}", e),
     }
     return Ok(());
 }
 
-fn handle_payment_created_response(response: mollie_api::models::payment::PaymentResource) {
+fn handle_payment_created_response(response: mollie_api::models::payment::PaymentResource, with_response: bool, qr: bool) {
     match response.links.get("checkout") {
         Some(checkout_url) => {
             info!("Pay this payment: {}", Colorize::blue(&*checkout_url.href));
-            qr2term::print_qr(checkout_url.href.clone()).ok(/* only print qrcode if everything is fine */);
+            if qr {
+                qr2term::print_qr(checkout_url.href.clone()).ok(/* only print qrcode if everything is fine */);
+            }
         }
         None => warn!("Couldn't find the checkout url!"),
+    }
+
+    if with_response {
+        let pretty_json = jsonxf::pretty_print(&serde_json::to_string(&response).unwrap()).unwrap();
+        info!("{}", pretty_json.to_colored_json_auto().unwrap());
     }
 }
 
