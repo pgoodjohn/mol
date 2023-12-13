@@ -50,7 +50,12 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: build
-        args: --release --target ${{ matrix.target }} --bin mol-${{ matrix.os }}-${{ matrix.arch }}
+        args: --release --target ${{ matrix.target }}
+
+    - name: Rename Output File
+      run: |
+          mv target/${{ matrix.target }}/release/my_project target/${{ matrix.target }}/release/my_project-${{ matrix.os }}-${{ matrix.arch }}
+  
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
