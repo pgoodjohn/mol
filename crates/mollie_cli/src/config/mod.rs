@@ -12,12 +12,14 @@ use std::sync::OnceLock;
 
 pub use crate::config::config::*;
 
+mod auth;
 mod config;
 mod error;
 
 pub trait ConfigurationService {
     fn read(&self) -> &MollieConfig;
     fn update(&mut self, updater: &dyn Fn(&mut MollieConfig)) -> ConfigResult<MollieConfig>;
+    fn refresh_if_needed(&mut self, config: &MollieConfig);
 }
 
 pub struct FigmentConfigurationService {
@@ -101,6 +103,19 @@ impl ConfigurationService for FigmentConfigurationService {
         })
     }
 
+    fn refresh_if_needed(&mut self, config: &MollieConfig) {
+        // let config = self.read();
+        if let Some(current_connect) = &config.auth.connect {
+            if current_connect.is_expired() {
+                let mut connect = current_connect.clone();
+                auth::refresh_token(&mut connect);
+                let _ = self.update(&|c| {
+                    c.auth.connect = Some(connect.clone());
+                });
+            }
+        }
+    }
+
     fn update(&mut self, updater: &dyn Fn(&mut MollieConfig)) -> ConfigResult<MollieConfig> {
         let mut config = self.read().clone();
         updater(&mut config);
@@ -182,6 +197,7 @@ mod test {
                             client_secret: "client_secret".to_string(),
                             refresh_token: Some("refresh_token".to_string()),
                             access_token: Some("access_token".to_string()),
+                            expires_at: None,
                         }),
                     },
                 }
